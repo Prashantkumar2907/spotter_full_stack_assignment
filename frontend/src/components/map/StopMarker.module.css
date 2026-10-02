@@ -1,0 +1,22 @@
+.popup {
+  display: grid;
+  gap: 2px;
+  min-width: 160px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-md);
+  color: var(--color-text);
+}
+
+.location {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.meta {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}

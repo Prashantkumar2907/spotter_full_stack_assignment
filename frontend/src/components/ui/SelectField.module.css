@@ -1,0 +1,17 @@
+.select {
+  flex: 1;
+  min-width: 0;
+  height: calc(var(--control-height) - 2px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+
+.select option {
+  background: var(--color-surface);
+  color: var(--color-text);
+}

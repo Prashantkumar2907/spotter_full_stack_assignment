@@ -1,0 +1,32 @@
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-soft);
+  animation: fade-up var(--duration-base) var(--ease-out);
+}
+
+.icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-danger);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-weight: 700;
+  color: var(--color-danger);
+}
+
+.message {
+  margin-top: 2px;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}

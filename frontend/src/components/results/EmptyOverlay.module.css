@@ -1,0 +1,66 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-popover);
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-bg) 30%, transparent),
+    color-mix(in srgb, var(--color-bg) 70%, transparent)
+  );
+  pointer-events: none;
+}
+
+.card {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  max-width: 420px;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  animation: fade-up var(--duration-slow) var(--ease-out) 0.1s both;
+}
+
+.title {
+  font-size: var(--text-xl);
+  font-weight: 800;
+}
+
+.lead {
+  color: var(--color-text-muted);
+}
+
+.list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  animation: fade-up var(--duration-slow) var(--ease-out) both;
+  animation-delay: calc(0.25s + var(--i) * 80ms);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}

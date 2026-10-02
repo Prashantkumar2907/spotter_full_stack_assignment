@@ -1,0 +1,43 @@
+.sheet-pen {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw-line 1.1s var(--ease-out) 0.15s forwards;
+}
+
+.print-sheets {
+  display: none;
+}
+
+@page {
+  size: letter portrait;
+  margin: 10mm;
+}
+
+@media print {
+  html,
+  body,
+  #root {
+    height: auto;
+    overflow: visible;
+    background: #fff;
+  }
+
+  .app-root {
+    display: none !important;
+  }
+
+  .print-sheets {
+    display: block;
+  }
+
+  .print-sheet {
+    break-after: page;
+    width: 100%;
+    height: auto;
+  }
+
+  .print-sheet .sheet-pen {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
