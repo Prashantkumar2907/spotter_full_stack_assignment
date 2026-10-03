@@ -1,9 +1,8 @@
 import { useId } from 'react'
 import type { DailyLog } from '../../../types/trip'
-import { formatHours } from '../../../utils/time'
 import { GridRows } from './GridRows'
-import { HourBand } from './HourBand'
-import { PenText } from './SheetPrimitives'
+import { HourScale } from './HourScale'
+import { Label, PenText } from './SheetPrimitives'
 import {
   BRACKET_DEPTH,
   GRID_WIDTH,
@@ -12,39 +11,53 @@ import {
   ROWS_BOTTOM,
   ROWS_Y,
   STATUS_ROWS,
-  TOTALS_LEFT,
-  TOTALS_RIGHT,
+  HOURS_BOX_X,
+  MINUTES_BOX_X,
+  REMARKS_LINE,
+  TOTAL_BOX_WIDTH,
+  STEM_LENGTH,
   buildDutyPath,
+  changePoints,
+  labelPositions,
   minuteToX,
-  rowCenterY,
+  splitHoursMinutes,
   type RemarkMark,
 } from './sheetLayout'
-import { INK, PEN } from './sheetTheme'
+import { INK, MARKER, PEN } from './sheetTheme'
 
-function Rule({ y, width = 1.2 }: { y: number; width?: number }) {
-  return <line x1={TOTALS_LEFT} x2={TOTALS_RIGHT} y1={y} y2={y} stroke={INK} strokeWidth={width} />
+function TotalBox({ x, y, value }: { x: number; y: number; value: string }) {
+  return (
+    <g>
+      <rect x={x} y={y} width={TOTAL_BOX_WIDTH} height={ROW_HEIGHT} fill="none" stroke={INK} strokeWidth={1.2} />
+      <PenText x={x + TOTAL_BOX_WIDTH / 2} y={y + ROW_HEIGHT / 2 + 7} anchor="middle" size={16}>
+        {value}
+      </PenText>
+    </g>
+  )
+}
+
+function TotalRow({ y, hours }: { y: number; hours: number }) {
+  const [whole, minutes] = splitHoursMinutes(hours)
+  return (
+    <g>
+      <TotalBox x={HOURS_BOX_X} y={y} value={whole} />
+      <TotalBox x={MINUTES_BOX_X} y={y} value={minutes} />
+    </g>
+  )
 }
 
 function TotalsColumn({ log }: { log: DailyLog }) {
   const grandTotal = STATUS_ROWS.reduce((sum, status) => sum + log.totals[status], 0)
+  const totalY = ROWS_BOTTOM + 6
   return (
     <g>
-      {STATUS_ROWS.map((status) => {
-        const y = rowCenterY(status)
-        return (
-          <g key={status}>
-            <PenText x={TOTALS_RIGHT - 4} y={y + 6} anchor="end" size={15}>
-              {formatHours(log.totals[status])}
-            </PenText>
-            <Rule y={y + ROW_HEIGHT / 2 - 2} />
-          </g>
-        )
-      })}
-      <PenText x={TOTALS_RIGHT - 4} y={ROWS_BOTTOM + 24} anchor="end" size={15}>
-        {`=${formatHours(grandTotal)}`}
-      </PenText>
-      <Rule y={ROWS_BOTTOM + 30} width={1.6} />
-      <Rule y={ROWS_BOTTOM + 34} width={1.6} />
+      {STATUS_ROWS.map((status, index) => (
+        <TotalRow key={status} y={ROWS_Y + index * ROW_HEIGHT} hours={log.totals[status]} />
+      ))}
+      <TotalRow y={totalY} hours={grandTotal} />
+      <Label x={MINUTES_BOX_X + TOTAL_BOX_WIDTH} y={totalY + ROW_HEIGHT + 14} size={10.5} weight={800} anchor="end">
+        TOTAL HOURS
+      </Label>
     </g>
   )
 }
@@ -70,22 +83,37 @@ function DutyLine({ log }: { log: DailyLog }) {
   )
 }
 
-function Bracket({ mark }: { mark: RemarkMark }) {
+function Bracket({ mark, anchorX }: { mark: RemarkMark; anchorX: number }) {
   const x1 = minuteToX(mark.startMinute)
   const x2 = minuteToX(mark.endMinute)
-  const bottom = ROWS_BOTTOM + BRACKET_DEPTH
-  const d = x2 > x1 ? `M${x1} ${ROWS_BOTTOM}V${bottom}H${x2}V${ROWS_BOTTOM}` : `M${x1} ${ROWS_BOTTOM}V${bottom}`
-  return <path d={d} fill="none" stroke={PEN} strokeWidth={1.8} />
+  const top = REMARKS_LINE
+  const bottom = top + BRACKET_DEPTH
+  const middle = (x1 + x2) / 2
+  const bracket = x2 > x1 ? `M${x1} ${top}V${bottom}H${x2}V${top}` : `M${x1} ${top}V${bottom}`
+  const stem = `M${middle} ${bottom}L${anchorX} ${bottom + STEM_LENGTH}`
+  return <path d={`${bracket}${stem}`} fill="none" stroke={PEN} strokeWidth={1.8} strokeLinejoin="round" />
+}
+
+function ChangeDots({ log }: { log: DailyLog }) {
+  return (
+    <g>
+      {changePoints(log.segments).map(([x, y], index) => (
+        <circle key={`${x}-${y}-${index}`} cx={x} cy={y} r={3.4} fill={MARKER} />
+      ))}
+    </g>
+  )
 }
 
 export function DutyGrid({ log, marks }: { log: DailyLog; marks: RemarkMark[] }) {
+  const anchors = labelPositions(marks)
   return (
     <g>
-      <HourBand />
+      <HourScale />
       <GridRows />
       <DutyLine log={log} />
-      {marks.map((mark) => (
-        <Bracket key={`${mark.startMinute}-${mark.location}`} mark={mark} />
+      <ChangeDots log={log} />
+      {marks.map((mark, index) => (
+        <Bracket key={`${mark.startMinute}-${mark.location}`} mark={mark} anchorX={anchors[index]} />
       ))}
       <TotalsColumn log={log} />
     </g>

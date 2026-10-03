@@ -7,20 +7,24 @@ export const HOUR_WIDTH = 32
 export const HOURS_PER_DAY = 24
 export const GRID_WIDTH = HOUR_WIDTH * HOURS_PER_DAY
 export const GRID_RIGHT = GRID_X + GRID_WIDTH
-export const TOTALS_LEFT = 910
-export const TOTALS_RIGHT = 962
-export const BAND_Y = 300
-export const BAND_HEIGHT = 56
-export const ROWS_Y = BAND_Y + BAND_HEIGHT
+export const HOURS_BOX_X = 904
+export const MINUTES_BOX_X = 942
+export const TOTAL_BOX_WIDTH = 34
+export const SCALE_Y = 300
+export const ROWS_Y = 356
 export const ROW_HEIGHT = 36
 export const ROWS_BOTTOM = ROWS_Y + ROW_HEIGHT * 4
-export const BRACKET_DEPTH = 16
+export const RULER_HEIGHT = 30
+export const REMARKS_LINE = ROWS_BOTTOM + RULER_HEIGHT
+export const BRACKET_DEPTH = 14
+export const STEM_LENGTH = 12
 export const REMARKS_TOP = 556
 export const REMARKS_BOTTOM = 820
 export const RECAP_TOP = 840
 export const BOTTOM_RULE = 1010
-export const LABEL_ANGLE = 60
-export const LABEL_MIN_GAP = 15
+export const LABEL_ANGLE = -45
+export const LABEL_MIN_GAP = 24
+export const LABEL_MIN_X = GRID_X + 64
 
 const MINUTES_PER_HOUR = 60
 const PADDING_ACTIVITIES = new Set(['before_trip', 'after_trip'])
@@ -62,24 +66,31 @@ export function buildDutyPath(segments: LogSegment[]): string {
     .join('')
 }
 
-function tickLength(quarter: number): number {
-  if (quarter % 4 === 0) return ROW_HEIGHT
-  return quarter % 2 === 0 ? ROW_HEIGHT * 0.5 : ROW_HEIGHT * 0.28
+function tickLength(quarter: number, full: number): number {
+  if (quarter % 4 === 0) return full
+  return quarter % 2 === 0 ? full * 0.5 : full * 0.28
 }
 
-export function tickPath(): string {
+export function tickPath(full: number = ROW_HEIGHT): string {
   const parts: string[] = []
   for (let quarter = 0; quarter <= HOURS_PER_DAY * 4; quarter++) {
     const x = Number((GRID_X + (quarter * HOUR_WIDTH) / 4).toFixed(2))
-    parts.push(`M${x} 0V${tickLength(quarter)}`)
+    parts.push(`M${x} 0V${tickLength(quarter, full)}`)
   }
   return parts.join('')
+}
+
+export function splitHoursMinutes(hours: number): [string, string] {
+  const totalMinutes = Math.round(hours * 60)
+  const whole = Math.floor(totalMinutes / 60)
+  return [String(whole).padStart(2, '0'), String(totalMinutes % 60).padStart(2, '0')]
 }
 
 export interface RemarkMark {
   startMinute: number
   endMinute: number
   location: string
+  activities: string[]
 }
 
 function isStationary(segment: LogSegment): boolean {
@@ -95,19 +106,56 @@ export function buildRemarkMarks(segments: LogSegment[], remarks: LogRemark[]): 
     const last = marks[marks.length - 1]
     const continues = last && last.endMinute === segment.start_minute && last.location === location
     if (continues) {
-      if (isStationary(segment)) last.endMinute = segment.end_minute
+      if (isStationary(segment)) {
+        last.endMinute = segment.end_minute
+        last.activities.push(segment.activity)
+      }
       continue
     }
     const end = isStationary(segment) ? segment.end_minute : segment.start_minute
-    marks.push({ startMinute: segment.start_minute, endMinute: end, location })
+    marks.push({ startMinute: segment.start_minute, endMinute: end, location, activities: [segment.activity] })
   }
   return marks
+}
+
+const REMARK_ACTIVITY_LABELS: Record<string, string> = {
+  drive_to_pickup: 'Start driving',
+  drive_to_dropoff: 'Start driving',
+  pickup: 'Pickup, loading',
+  dropoff: 'Drop-off, unloading',
+  fuel: 'Fuel',
+  break: '30 min break',
+  rest: '10 hr break (sleeper)',
+  restart: '34 hr restart',
+}
+
+export function activityLabel(activity: string): string {
+  return REMARK_ACTIVITY_LABELS[activity] ?? activity
+}
+
+export function remarkActivity(mark: RemarkMark): string {
+  return mark.activities.map(activityLabel).join(' / ')
+}
+
+export function markAnchorX(mark: RemarkMark): number {
+  return (minuteToX(mark.startMinute) + minuteToX(mark.endMinute)) / 2
+}
+
+export function changePoints(segments: LogSegment[]): Array<[number, number]> {
+  const merged = mergeAdjacent(segments)
+  return merged.slice(1).flatMap((segment, index) => {
+    const x = minuteToX(segment.start_minute)
+    return [
+      [x, rowCenterY(merged[index].status)],
+      [x, rowCenterY(segment.status)],
+    ] as Array<[number, number]>
+  })
 }
 
 export function labelPositions(marks: RemarkMark[]): number[] {
   const positions: number[] = []
   for (const mark of marks) {
-    const natural = minuteToX(mark.startMinute) + 4
+    const natural = Math.max(markAnchorX(mark), LABEL_MIN_X)
     const previous = positions[positions.length - 1]
     positions.push(previous === undefined ? natural : Math.max(natural, previous + LABEL_MIN_GAP))
   }
@@ -134,6 +182,7 @@ export function truncate(text: string, maxCharacters: number): string {
 }
 
 export function hourLabel(hour: number): string {
-  if (hour === 12) return 'Noon'
-  return String(hour % 12 === 0 ? 12 : hour % 12)
+  if (hour === 12) return 'noon'
+  if (hour % 24 === 0) return 'Midnight'
+  return String(hour % 12)
 }

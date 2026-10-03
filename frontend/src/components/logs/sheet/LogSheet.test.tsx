@@ -12,41 +12,51 @@ describe('LogSheet', () => {
 
   it('fills the header fields', () => {
     render(<LogSheet log={sampleLog} />)
-    expect(screen.getAllByText('10').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('(month)')).toBeInTheDocument()
-    expect(screen.getByText('05')).toBeInTheDocument()
-    expect(screen.getByText('2026')).toBeInTheDocument()
-    expect(screen.getByText("John Doe's Transportation")).toBeInTheDocument()
-    expect(screen.getByText('Washington, D.C.')).toBeInTheDocument()
-    expect(screen.getByText('123, 20544')).toBeInTheDocument()
-    expect(screen.getByText('101601')).toBeInTheDocument()
+    expect(screen.getByLabelText('month 10')).toBeInTheDocument()
+    expect(screen.getByLabelText('day 05')).toBeInTheDocument()
+    expect(screen.getByLabelText('year 2026')).toBeInTheDocument()
+    for (const text of ["John Doe's Transportation", 'Washington, D.C.', '123, 20544', '101601']) {
+      expect(screen.getByText(text)).toBeInTheDocument()
+    }
     expect(screen.getAllByText('324.8')).toHaveLength(2)
   })
 
-  it('shows the totals for each duty row and the 24 hour sum', () => {
-    render(<LogSheet log={sampleLog} />)
-    for (const total of ['16.08', '5.92', '2.00', '=24.00']) {
-      expect(screen.getByText(total)).toBeInTheDocument()
-    }
+  it('totals each duty line in hours and minutes that add up to 24', () => {
+    const { container } = render(<LogSheet log={sampleLog} />)
+    expect(screen.getByText('TOTAL HOURS')).toBeInTheDocument()
+    expect(screen.getByText('24')).toBeInTheDocument()
+    expect(screen.getByText('16')).toBeInTheDocument()
+    expect(container.querySelectorAll('rect[width="34"]')).toHaveLength(10)
   })
 
-  it('writes each change-of-duty city under a bracket, like the FMCSA example', () => {
+  it('flags each change of duty with the city and the activity, as in the video and FMCSA example', () => {
     const { container } = render(<LogSheet log={sampleLog} />)
-    const labels = [...container.querySelectorAll('g[transform*="rotate(60)"] text')].map((node) => node.textContent)
-    expect(labels).toEqual(['Richmond, VA', 'Newark, NJ'])
+    const flags = [...container.querySelectorAll('g.sheet-remark')].map((flag) =>
+      [...flag.querySelectorAll('text')].map((node) => node.textContent),
+    )
+    expect(flags).toEqual([
+      ['Richmond, VA', 'Pickup, loading'],
+      ['Newark, NJ', 'Drop-off, unloading'],
+    ])
+  })
+
+  it('marks both ends of every change of duty with a dot', () => {
+    const { container } = render(<LogSheet log={sampleLog} />)
+    expect(container.querySelectorAll('circle')).toHaveLength(8)
   })
 
   it('has the blank form sections in the given order', () => {
     render(<LogSheet log={sampleLog} />)
-    for (const text of ['Remarks', 'Shipping', 'Documents:', 'Recap:', '70 Hour/', 'Use time standard of home terminal.']) {
+    for (const text of ['REMARKS', 'Shipping', 'Documents:', 'Recap:', '70 Hour/', 'Use time standard of home terminal.']) {
       expect(screen.getByText(text)).toBeInTheDocument()
     }
   })
 
-  it('fills the 70 hour recap boxes', () => {
-    render(<LogSheet log={sampleLog} />)
+  it('fills the 70 hour recap and circles the on-duty hours', () => {
+    const { container } = render(<LogSheet log={sampleLog} />)
     expect(screen.getAllByText('7.92')).toHaveLength(3)
     expect(screen.getByText('62.08')).toBeInTheDocument()
+    expect(container.querySelectorAll('ellipse')).toHaveLength(1)
   })
 
   it('announces a completed restart in the recap note', () => {

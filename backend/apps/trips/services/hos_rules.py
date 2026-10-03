@@ -17,6 +17,7 @@ class HosRules:
     fuel_stop: int = 30
     pickup: int = 60
     dropoff: int = 60
+    log_increment: int = 15
 
     @property
     def miles_per_minute(self) -> float:

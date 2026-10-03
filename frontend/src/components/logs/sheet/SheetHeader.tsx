@@ -4,10 +4,13 @@ import { splitDate } from '../../../utils/time'
 import { Box, Caption, Label, PenText, Underline } from './SheetPrimitives'
 import { FONT_DISPLAY, INK } from './sheetTheme'
 
+const DIGIT_WIDTH = 22
+const DIGIT_HEIGHT = 28
+const DIGIT_TOP = 12
 const DATE_FIELDS = [
-  { key: 'month', x: 330, width: 72, caption: '(month)' },
-  { key: 'day', x: 414, width: 72, caption: '(day)' },
-  { key: 'year', x: 498, width: 72, caption: '(year)' },
+  { key: 'month', x: 330, caption: '(month)' },
+  { key: 'day', x: 390, caption: '(day)' },
+  { key: 'year', x: 450, caption: '(year)' },
 ] as const
 
 const BOX_LEFT = 102
@@ -17,27 +20,36 @@ const LINES_LEFT = 446
 const LINES_RIGHT = 910
 const PAD_LEFT = 40
 
+function DigitBoxes({ x, digits }: { x: number; digits: string }) {
+  return (
+    <g>
+      {[...digits].map((digit, index) => {
+        const left = x + index * DIGIT_WIDTH
+        return (
+          <g key={`${index}-${digit}`}>
+            <rect x={left} y={DIGIT_TOP} width={DIGIT_WIDTH} height={DIGIT_HEIGHT} fill="none" stroke={INK} strokeWidth={1.2} />
+            <PenText x={left + DIGIT_WIDTH / 2} y={DIGIT_TOP + 21} anchor="middle" size={16}>
+              {digit}
+            </PenText>
+          </g>
+        )
+      })}
+    </g>
+  )
+}
+
 function DateFields({ date }: { date: string }) {
   const parts = splitDate(date)
   return (
     <g>
-      {DATE_FIELDS.map(({ key, x, width, caption }) => (
-        <g key={key}>
-          <PenText x={x + width / 2} y={34} anchor="middle" size={16}>
-            {parts[key]}
-          </PenText>
-          <Underline x1={x} x2={x + width} y={40} />
-          <Caption x={x + width / 2} y={55} anchor="middle">
+      {DATE_FIELDS.map(({ key, x, caption }) => (
+        <g key={key} aria-label={`${caption.slice(1, -1)} ${parts[key]}`}>
+          <DigitBoxes x={x} digits={parts[key]} />
+          <Caption x={x + (parts[key].length * DIGIT_WIDTH) / 2} y={DIGIT_TOP + DIGIT_HEIGHT + 13} anchor="middle">
             {caption}
           </Caption>
         </g>
       ))}
-      <Label x={408} y={40} anchor="middle" size={18}>
-        /
-      </Label>
-      <Label x={492} y={40} anchor="middle" size={18}>
-        /
-      </Label>
     </g>
   )
 }

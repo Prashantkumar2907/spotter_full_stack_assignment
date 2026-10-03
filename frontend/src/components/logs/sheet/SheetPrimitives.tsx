@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
-import { FONT_BODY, FONT_MONO, INK, MUTED, PEN } from './sheetTheme'
+import { FONT_BODY, FONT_HAND, INK, MUTED, PEN } from './sheetTheme'
+
+const HAND_SCALE = 1.22
 
 interface TextProps {
   x: number
@@ -42,7 +44,7 @@ export function Caption(props: Omit<TextProps, 'fill' | 'size'>) {
 }
 
 export function PenText({ size = 14, ...props }: Omit<TextProps, 'fill' | 'family'>) {
-  return <Label size={size} fill={PEN} family={FONT_MONO} weight={500} {...props} />
+  return <Label size={size * HAND_SCALE} fill={PEN} family={FONT_HAND} weight={400} {...props} />
 }
 
 interface UnderlineProps {

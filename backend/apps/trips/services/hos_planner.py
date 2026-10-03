@@ -1,16 +1,20 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
-from math import ceil, floor
 
 from apps.trips.constants import MINUTES_PER_HOUR
 from apps.trips.exceptions import PlanningInvariantError
 from apps.trips.services.hos_rules import DEFAULT_RULES, HosRules
 from apps.trips.types import Activity, DutySegment, DutyStatus
-from apps.trips.utils.timeutils import add_minutes, minutes_between
+from apps.trips.utils.timeutils import (
+    add_minutes,
+    ceil_datetime_to_step,
+    ceil_to_step,
+    floor_to_step,
+    minutes_between,
+)
 
 MILE_EPSILON = 1e-6
-MINUTE_ROUNDING_DIGITS = 6
 
 
 @dataclass(slots=True)
@@ -55,11 +59,11 @@ class Simulation:
 
     def _fuel_minutes_left(self) -> int:
         miles_left = self.rules.fuel_interval_miles - self.state.miles_since_fuel
-        return floor(miles_left / self.rules.miles_per_minute)
+        return floor_to_step(miles_left / self.rules.miles_per_minute, self.rules.log_increment)
 
     def _minutes_to_cover(self, target_mile: float) -> int:
         minutes = (target_mile - self.state.mile) / self.rules.miles_per_minute
-        return ceil(round(minutes, MINUTE_ROUNDING_DIGITS))
+        return ceil_to_step(minutes, self.rules.log_increment)
 
     def _driving_minutes_available(self, target_mile: float) -> int:
         state, rules = self.state, self.rules
@@ -159,7 +163,9 @@ def plan_duty_segments(
     rules: HosRules = DEFAULT_RULES,
 ) -> list[DutySegment]:
     pickup_miles, dropoff_miles = leg_miles
-    simulation = Simulation(rules, start, round(cycle_used_hours * MINUTES_PER_HOUR))
+    step = rules.log_increment
+    cycle_minutes = ceil_to_step(cycle_used_hours * MINUTES_PER_HOUR, step)
+    simulation = Simulation(rules, ceil_datetime_to_step(start, step), cycle_minutes)
     simulation.drive(pickup_miles, Activity.DRIVE_TO_PICKUP)
     simulation.work(rules.pickup, Activity.PICKUP)
     simulation.drive(dropoff_miles, Activity.DRIVE_TO_DROPOFF)

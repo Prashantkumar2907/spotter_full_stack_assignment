@@ -5,8 +5,10 @@ import {
   LABEL_ANGLE,
   REMARKS_BOTTOM,
   REMARKS_TOP,
-  ROWS_BOTTOM,
+  REMARKS_LINE,
+  STEM_LENGTH,
   labelPositions,
+  remarkActivity,
   truncate,
   type RemarkMark,
 } from './sheetLayout'
@@ -17,18 +19,26 @@ const RULE_WIDTH = 3
 const GAP_START = 362
 const GAP_END = 624
 const RULE_END = 896
-const LABEL_LIMIT = 24
+const LABEL_LIMIT = 22
+const ACTIVITY_LIMIT = 26
 const SHIPPING_X = 46
 
 function RemarkLabels({ marks }: { marks: RemarkMark[] }) {
   const positions = labelPositions(marks)
-  const y = ROWS_BOTTOM + BRACKET_DEPTH + 8
+  const y = REMARKS_LINE + BRACKET_DEPTH + STEM_LENGTH + 4
   return (
     <g>
       {marks.map((mark, index) => (
-        <g key={`${mark.startMinute}-${mark.location}`} transform={`translate(${positions[index]} ${y}) rotate(${LABEL_ANGLE})`}>
-          <PenText x={0} y={0} size={13}>
+        <g
+          key={`${mark.startMinute}-${mark.location}`}
+          className="sheet-remark"
+          transform={`translate(${positions[index]} ${y}) rotate(${LABEL_ANGLE})`}
+        >
+          <PenText x={-2} y={4} size={12.5} anchor="end">
             {truncate(mark.location, LABEL_LIMIT)}
+          </PenText>
+          <PenText x={-2} y={18} size={10.5} anchor="end">
+            {truncate(remarkActivity(mark), ACTIVITY_LIMIT)}
           </PenText>
         </g>
       ))}
@@ -80,8 +90,8 @@ function Borders() {
 export function RemarksBlock({ log, marks }: { log: DailyLog; marks: RemarkMark[] }) {
   return (
     <g>
-      <Label x={44} y={540} size={15} weight={800}>
-        Remarks
+      <Label x={44} y={548} size={15} weight={800}>
+        REMARKS
       </Label>
       <Borders />
       <RemarkLabels marks={marks} />

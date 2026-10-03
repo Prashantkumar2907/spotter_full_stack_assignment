@@ -2,7 +2,7 @@ import type { DailyLog } from '../../../types/trip'
 import { formatHours } from '../../../utils/time'
 import { Label, PenText } from './SheetPrimitives'
 import { BOTTOM_RULE, RECAP_TOP, wrapText } from './sheetLayout'
-import { INK } from './sheetTheme'
+import { INK, MARKER } from './sheetTheme'
 
 const LINE_Y = RECAP_TOP + 44
 const CAPTION_Y = LINE_Y + 15
@@ -29,9 +29,21 @@ function StackedText({ x, y, lines, weight = 600 }: { x: number; y: number; line
   )
 }
 
-function Field({ field }: { field: RecapField }) {
+function Field({ field, circled = false }: { field: RecapField; circled?: boolean }) {
   return (
     <g>
+      {circled && field.value && (
+        <ellipse
+          cx={field.x + field.width / 2 + 6}
+          cy={LINE_Y - 11}
+          rx={field.width / 2 + 2}
+          ry={14}
+          fill="none"
+          stroke={MARKER}
+          strokeWidth={2}
+          transform={`rotate(-4 ${field.x + field.width / 2} ${LINE_Y - 11})`}
+        />
+      )}
       {field.letter && (
         <Label x={field.x} y={LINE_Y - 4} size={14}>
           {field.letter}
@@ -76,7 +88,7 @@ export function RecapBlock({ log }: { log: DailyLog }) {
   return (
     <g>
       <StackedText x={46} y={RECAP_TOP + 6} lines={['Recap:', 'Complete at', 'end of day']} weight={700} />
-      <Field field={onDuty} />
+      <Field field={onDuty} circled />
       <StackedText x={221} y={RECAP_TOP + 6} lines={['70 Hour/', '8 Day', 'Drivers']} weight={700} />
       {seventyHourFields(log).map((field) => (
         <Field key={field.x} field={field} />

@@ -78,8 +78,9 @@ def test_fuel_stop_at_least_every_thousand_miles():
     segments = plan_duty_segments((0, 2500), at(5, 6), 0)
     fuel = [s for s in segments if s.activity == Activity.FUEL]
     assert len(fuel) == 2
-    assert fuel[0].start_mile == pytest.approx(1000, abs=1)
-    assert fuel[1].start_mile == pytest.approx(2000, abs=2)
+    quarter_hour_miles = RULES.miles_per_minute * RULES.log_increment
+    assert 1000 - quarter_hour_miles <= fuel[0].start_mile <= 1000
+    assert fuel[1].start_mile - fuel[0].start_mile <= 1000
     assert all(s.status == DutyStatus.ON_DUTY and s.minutes == RULES.fuel_stop for s in fuel)
 
 
@@ -133,6 +134,27 @@ def test_cycle_tracking_matches_on_duty_minutes():
     )
 
 
+def on_quarter_hour(moment) -> bool:
+    return moment.minute % RULES.log_increment == 0 and moment.second == 0
+
+
+def test_start_rounds_up_to_the_next_quarter_hour():
+    segments = plan_duty_segments((100, 100), at(5, 9, 7), 0)
+    assert segments[0].start == at(5, 9, 15)
+
+
+def test_cycle_hours_round_up_to_the_next_quarter_hour():
+    segments = plan_duty_segments((100, 100), at(5, 6), 10.1)
+    assert segments[0].cycle_before == 10 * 60 + 15
+
+
+def test_driving_time_is_never_shorter_than_distance_requires():
+    segments = plan_duty_segments((0, 324.8), at(5, 6), 0)
+    driving = next(s for s in segments if s.status == DutyStatus.DRIVING)
+    assert driving.minutes == 360
+    assert driving.minutes >= 324.8 / MPM
+
+
 LEGS = (0, 5, 120, 480, 900, 1500, 2600)
 CYCLES = (0, 35, 62, 69.5, 70)
 STARTS = (at(5, 0), at(5, 6), at(5, 13, 45), at(5, 22, 10))
@@ -145,5 +167,6 @@ STARTS = (at(5, 0), at(5, 6), at(5, 13, 45), at(5, 22, 10))
 def test_every_plan_obeys_all_hos_rules(pickup_miles, dropoff_miles, cycle, start):
     segments = plan_duty_segments((pickup_miles, dropoff_miles), start, cycle)
     assert_compliant(segments)
+    assert all(on_quarter_hour(s.start) and on_quarter_hour(s.end) for s in segments)
     driven = sum(s.miles for s in segments if s.status == DutyStatus.DRIVING)
     assert driven == pytest.approx(pickup_miles + dropoff_miles, abs=1e-6)

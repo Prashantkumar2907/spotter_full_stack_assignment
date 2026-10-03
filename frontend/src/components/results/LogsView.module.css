@@ -45,6 +45,13 @@
   color: var(--color-accent-ink);
 }
 
+.content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+  gap: var(--space-4);
+  min-height: 0;
+}
+
 .stage {
   display: grid;
   place-items: center;
@@ -90,7 +97,21 @@
   filter: drop-shadow(0 6px 18px var(--shadow-ink));
 }
 
+@media (max-width: 1279px) {
+  .content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .content > aside {
+    display: none;
+  }
+}
+
 @media (max-width: 1099px) {
+  .content > aside {
+    display: flex;
+  }
+
   .toolbar {
     flex-direction: column;
     align-items: stretch;

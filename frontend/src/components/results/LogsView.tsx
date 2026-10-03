@@ -5,6 +5,7 @@ import { formatLongDay } from '../../utils/time'
 import { LogSheet } from '../logs/sheet/LogSheet'
 import { Dialog } from '../ui/Dialog'
 import { tabButtonId, tabPanelId } from '../ui/tabIds'
+import { DaySummary } from './DaySummary'
 import { LOG_TABS_PREFIX, LogsToolbar } from './LogsToolbar'
 import styles from './LogsView.module.css'
 
@@ -27,14 +28,17 @@ export function LogsView({ plan }: { plan: TripPlan }) {
         onExpand={() => setExpanded(true)}
       />
       <div
-        className={styles.stage}
+        className={styles.content}
         role="tabpanel"
         id={tabPanelId(LOG_TABS_PREFIX)}
         aria-labelledby={tabButtonId(LOG_TABS_PREFIX, String(log.day_number))}
       >
-        <button type="button" className={styles.sheetButton} onClick={() => setExpanded(true)} aria-label={`Expand ${title}`}>
-          <LogSheet key={log.date} log={log} svgRef={svgRef} className={styles.sheet} />
-        </button>
+        <div className={styles.stage}>
+          <button type="button" className={styles.sheetButton} onClick={() => setExpanded(true)} aria-label={`Expand ${title}`}>
+            <LogSheet key={log.date} log={log} svgRef={svgRef} className={styles.sheet} />
+          </button>
+        </div>
+        <DaySummary key={log.date} log={log} />
       </div>
       <Dialog open={expanded} title={title} onClose={() => setExpanded(false)}>
         <LogSheet log={log} className={styles.expandedSheet} />

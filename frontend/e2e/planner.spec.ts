@@ -26,10 +26,12 @@ test('the FMCSA sample plans one day and its sheet matches the official form', a
   await page.getByRole('tab', { name: /Log sheets/ }).click()
   const sheet = page.getByRole('img', { name: /daily log for 2026-10-05/i })
   await expect(sheet).toBeVisible()
-  for (const text of ['Drivers Daily Log', 'Remarks', 'Recap:', '=24.00', '101601', '123, 20544']) {
+  for (const text of ['Drivers Daily Log', 'REMARKS', 'Recap:', 'TOTAL HOURS', '101601', '123, 20544']) {
     await expect(sheet.getByText(text, { exact: true })).toBeVisible()
   }
-  await expect(sheet.locator('g[transform*="rotate(60)"] text')).toHaveText(['Richmond, VA', 'Newark, NJ'])
+  await expect(sheet.locator('g.sheet-remark text:first-child')).toHaveText(['Richmond, VA', 'Newark, NJ'])
+  await expect(sheet.locator('g.sheet-remark text:last-child')).toHaveText(['Pickup, loading', 'Drop-off, unloading'])
+  await expect(page.getByLabel('Day summary')).toContainText('Drop-off, unloading')
   expect(errors).toEqual([])
 })
 
@@ -71,7 +73,7 @@ test('a multi-day trip with a 34-hour restart has a sheet and itinerary day for 
   const logDays = page.getByRole('tablist', { name: 'Log sheet days' }).getByRole('tab')
   await expect(logDays).toHaveCount(5)
   await logDays.nth(1).click()
-  await expect(page.getByRole('img', { name: /daily log for 2026-10-06/i })).toContainText('24.00')
+  await expect(page.getByRole('img', { name: /daily log for 2026-10-06/i })).toContainText('TOTAL HOURS')
 })
 
 test('planning again while the log tab is open does not crash the map', async ({ page }) => {

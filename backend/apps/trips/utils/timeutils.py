@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from math import ceil, floor
 
 from apps.trips.constants import MINUTES_PER_DAY
 
@@ -25,3 +26,17 @@ def minute_of_day(moment: datetime) -> int:
 
 def next_midnight(moment: datetime) -> datetime:
     return start_of_day(moment) + timedelta(minutes=MINUTES_PER_DAY)
+
+
+def ceil_to_step(value: float, step: int) -> int:
+    return ceil(round(value, 6) / step) * step
+
+
+def floor_to_step(value: float, step: int) -> int:
+    return floor(round(value, 6) / step) * step
+
+
+def ceil_datetime_to_step(moment: datetime, step: int) -> datetime:
+    midnight = start_of_day(moment)
+    elapsed = (moment - midnight).total_seconds() / 60
+    return midnight + timedelta(minutes=ceil_to_step(elapsed, step))

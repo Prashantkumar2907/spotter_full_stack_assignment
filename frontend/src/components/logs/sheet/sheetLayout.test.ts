@@ -4,9 +4,15 @@ import {
   GRID_RIGHT,
   GRID_X,
   LABEL_MIN_GAP,
+  activityLabel,
   buildDutyPath,
   buildRemarkMarks,
+  changePoints,
+  hourLabel,
   labelPositions,
+  markAnchorX,
+  remarkActivity,
+  splitHoursMinutes,
   mergeAdjacent,
   minuteToX,
   rowCenterY,
@@ -98,12 +104,12 @@ const fmcsaRemarks = [
 describe('remark brackets', () => {
   it('reproduces the six brackets of the FMCSA completed log', () => {
     expect(buildRemarkMarks(fmcsaSegments, fmcsaRemarks)).toEqual([
-      { startMinute: 360, endMinute: 450, location: 'Richmond, VA' },
-      { startMinute: 540, endMinute: 570, location: 'Fredericksburg, VA' },
-      { startMinute: 720, endMinute: 780, location: 'Baltimore, MD' },
-      { startMinute: 900, endMinute: 930, location: 'Philadelphia, PA' },
-      { startMinute: 960, endMinute: 1065, location: 'Cherry Hill, NJ' },
-      { startMinute: 1140, endMinute: 1260, location: 'Newark, NJ' },
+      { startMinute: 360, endMinute: 450, location: 'Richmond, VA', activities: ['pickup'] },
+      { startMinute: 540, endMinute: 570, location: 'Fredericksburg, VA', activities: ['fuel'] },
+      { startMinute: 720, endMinute: 780, location: 'Baltimore, MD', activities: ['break'] },
+      { startMinute: 900, endMinute: 930, location: 'Philadelphia, PA', activities: ['dropoff'] },
+      { startMinute: 960, endMinute: 1065, location: 'Cherry Hill, NJ', activities: ['rest'] },
+      { startMinute: 1140, endMinute: 1260, location: 'Newark, NJ', activities: ['dropoff'] },
     ])
   })
 
@@ -116,8 +122,8 @@ describe('remark brackets', () => {
       ],
     )
     expect(marks).toEqual([
-      { startMinute: 480, endMinute: 480, location: 'Los Angeles, CA' },
-      { startMinute: 960, endMinute: 990, location: 'Cedar City, UT' },
+      { startMinute: 480, endMinute: 480, location: 'Los Angeles, CA', activities: ['test'] },
+      { startMinute: 960, endMinute: 990, location: 'Cedar City, UT', activities: ['test'] },
     ])
   })
 
@@ -126,17 +132,44 @@ describe('remark brackets', () => {
       [segment('sleeper', 0, 330), segment('driving', 330, 600)],
       [{ minute: 330, location: 'Ferron, UT', note: '' }],
     )
-    expect(marks).toEqual([{ startMinute: 330, endMinute: 330, location: 'Ferron, UT' }])
+    expect(marks).toEqual([{ startMinute: 330, endMinute: 330, location: 'Ferron, UT', activities: ['test'] }])
   })
 
   it('keeps rotated labels from overlapping', () => {
-    const positions = labelPositions([
-      { startMinute: 600, endMinute: 630, location: 'A' },
-      { startMinute: 610, endMinute: 640, location: 'B' },
-      { startMinute: 900, endMinute: 930, location: 'C' },
-    ])
+    const marks = [
+      { startMinute: 600, endMinute: 630, location: 'A', activities: [] },
+      { startMinute: 610, endMinute: 640, location: 'B', activities: [] },
+      { startMinute: 900, endMinute: 930, location: 'C', activities: [] },
+    ]
+    const positions = labelPositions(marks)
     expect(positions[1] - positions[0]).toBeGreaterThanOrEqual(LABEL_MIN_GAP)
-    expect(positions[2]).toBe(minuteToX(900) + 4)
+    expect(positions[2]).toBe(markAnchorX(marks[2]))
+  })
+
+  it('names what the driver did at each stop', () => {
+    const mark = { startMinute: 0, endMinute: 30, location: 'Fond du Lac, WI', activities: ['fuel', 'break'] }
+    expect(remarkActivity(mark)).toBe('Fuel / 30 min break')
+    expect(activityLabel('drive_to_dropoff')).toBe('Start driving')
+  })
+})
+
+describe('pen marks and totals', () => {
+  it('puts a dot at both ends of every change of duty status', () => {
+    const points = changePoints([segment('off_duty', 0, 390), segment('on_duty', 390, 420), segment('on_duty', 420, 450)])
+    expect(points).toEqual([
+      [minuteToX(390), rowCenterY('off_duty')],
+      [minuteToX(390), rowCenterY('on_duty')],
+    ])
+  })
+
+  it('writes totals as hours and quarter-hour minutes', () => {
+    expect(splitHoursMinutes(8.5)).toEqual(['08', '30'])
+    expect(splitHoursMinutes(24)).toEqual(['24', '00'])
+    expect(splitHoursMinutes(0.25)).toEqual(['00', '15'])
+  })
+
+  it('labels the hour scale like the paper form', () => {
+    expect([hourLabel(0), hourLabel(1), hourLabel(12), hourLabel(23)]).toEqual(['Midnight', '1', 'noon', '11'])
   })
 })
 

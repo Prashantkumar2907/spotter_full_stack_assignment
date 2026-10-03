@@ -28,13 +28,16 @@ The hard part is that the log sheets are only correct if the schedule underneath
 
 ### How the log sheet follows the provided form
 
-The sheet is laid out to the proportions of the blank *Drivers Daily Log* image from the assignment, and it is filled in the way the FMCSA guide's "A Completed Log" (page 19) is filled:
+The sheet keeps every field of the blank *Drivers Daily Log* supplied with the assignment. It is drawn and filled the way a driver fills a paper log, following the FMCSA guide's "A Completed Log" (page 19) and the Schneider walkthrough *How to fill out a log book for truck drivers*:
 
-- Header: date as month / day / year, From and To, the two mileage boxes, the truck and trailer box, and the carrier, main office and home terminal lines.
-- Grid: a black band with Mid-night, 1 to 11, Noon, 1 to 11, Mid-night and Total Hours. The four duty rows have quarter-hour ticks, hanging from the top on rows 1 and 2 and standing on rows 3 and 4 as on the form. A continuous pen line steps between rows at every change of duty status.
-- Totals: one figure per row and a double-ruled `=24.00`.
-- Remarks: as in the FMCSA example, each place where the driver stopped is bracketed under the grid for the time spent there, and the city and state are written at an angle below it. A trip that starts by driving gets a single tick. Shipping documents sit bottom-left, and the instruction line sits in the gap of the bottom rule.
-- Recap: written on lines, not boxes. "On duty hours today" and A / B / C for 70 hour / 8 day drivers are filled; the 60 hour / 7 day columns stay blank (not applicable), and the 34-hour note is in its own column.
+- Printed form in blue, entries in black handwriting, like a real paper log.
+- Header: the date in digit boxes (month / day / year), From and To, the two mileage boxes, the truck and trailer box, and the carrier, main office and home terminal lines.
+- Grid: hour labels from Midnight to 11 across the top, repeated on a ruler under the grid. Each hour is split into 15-minute ticks, and there is one row per duty status.
+- Pen line: a dot at every change of duty status, connected by horizontal and vertical lines.
+- Line totals: HOURS and MINUTES boxes (00, 15, 30 or 45) for each line, plus a TOTAL HOURS row that always reads 24 00.
+- Remarks: a bracket under the grid marks the time the truck did not move, and a 45° flag gives the city and state plus what the driver did ("Pickup, loading", "Fuel", "30 min break", "10 hr break (sleeper)", "34 hr restart", "Start driving"). Shipping documents sit bottom-left, and the instruction line sits in the gap of the bottom rule.
+- Recap: on lines, as on the form. On-duty hours today (lines 3 and 4) are circled, as the walkthrough shows. A / B / C are filled for the 70 hour / 8 day driver; the 60 hour / 7 day columns stay blank.
+- Next to the sheet, the app lists every change of duty in plain text, the hours per line, the recap, and a key explaining dots, brackets and flags.
 
 ![FMCSA sample day as drawn by the app](docs/screenshots/04-fmcsa-sample-sheet.png)
 
@@ -53,13 +56,13 @@ Source for every rule: the FMCSA guide supplied with the assignment.
 
 | Rule | Value | Where |
 |---|---|---|
-| Driving limit | 11 h of driving, then a 10 h rest | `backend/apps/trips/services/hos_rules.py:9`, `hos_planner.py:64` |
-| Driving window | 14 consecutive hours from the start of the shift | `hos_rules.py:10`, `hos_planner.py:52` |
-| Rest break | 30 min off after 8 cumulative driving hours; any non-driving block of 30 min or more resets the clock (pickup, drop-off and fuel stops count) | `hos_rules.py:11`, `hos_planner.py:132` |
-| Cycle limit | 70 on-duty hours in 8 days | `hos_rules.py:14`, `hos_planner.py:75` |
-| 34-hour restart | Inserted when the 70 hours are used up; resets the cycle to zero | `hos_rules.py:15`, `hos_planner.py:149` |
-| Fueling | A 30 min on-duty stop when 1,000 miles have been driven since the last fill | `hos_rules.py:16`, `hos_planner.py:56`, `hos_planner.py:140` |
-| Pickup / drop-off | 1 h each, on duty, not driving | `hos_planner.py:155` |
+| Driving limit | 11 h of driving, then a 10 h rest | `backend/apps/trips/services/hos_rules.py:9`, `hos_planner.py:68` |
+| Driving window | 14 consecutive hours from the start of the shift | `hos_rules.py:10`, `hos_planner.py:56` |
+| Rest break | 30 min off after 8 cumulative driving hours; any non-driving block of 30 min or more resets the clock (pickup, drop-off and fuel stops count) | `hos_rules.py:11`, `hos_planner.py:136` |
+| Cycle limit | 70 on-duty hours in 8 days | `hos_rules.py:14`, `hos_planner.py:79` |
+| 34-hour restart | Inserted when the 70 hours are used up; resets the cycle to zero | `hos_rules.py:15`, `hos_planner.py:153` |
+| Fueling | A 30 min on-duty stop when 1,000 miles have been driven since the last fill | `hos_rules.py:16`, `hos_planner.py:60`, `hos_planner.py:144` |
+| Pickup / drop-off | 1 h each, on duty, not driving | `hos_planner.py` (`plan_duty_segments`) |
 | Log sheet | 24 h grid, totals sum to 24, remarks with city and state, miles, recap | `backend/apps/trips/services/logbook.py:182` |
 
 Logging conventions: 10 h rests are logged as **sleeper berth**; 30 min breaks and 34 h restarts as **off duty**; pickup, drop-off and fueling as **on duty (not driving)**.
@@ -67,6 +70,7 @@ Logging conventions: 10 h rests are logged as **sleeper berth**; 30 min breaks a
 ### Assumptions I made where the brief is silent
 
 - Average truck speed is 55 mph (`HosRules.speed_mph`); OSRM provides distance, not truck speed.
+- Paper logs are kept in 15-minute increments, so the plan is too (`HosRules.log_increment`). The departure, cycle hours and each drive leg are rounded up to the next quarter hour, and a fuel stop is rounded to the quarter hour before 1,000 miles. Every rounding errs toward a legal, slightly conservative plan.
 - The truck leaves with a full tank, and the driver starts the trip rested (at least 10 hours off) at the chosen departure time.
 - Departure time is entered in home-terminal time, as the FMCSA guide requires. There is no timezone conversion.
 - Hours already used in the cycle are treated as one block that does not roll off during the trip. This is the conservative choice, because the app is not given the daily history.
@@ -88,7 +92,7 @@ The guide contains a completed log (John E. Doe, Richmond VA to Newark NJ, 350 m
 | Total miles driving today | 350 | 350.0 |
 | Remarks (change-of-duty cities) | Richmond, Fredericksburg, Baltimore, Philadelphia, Cherry Hill, Newark | same cities recorded |
 
-The same trip planned through the app ("FMCSA sample day" example) gives 324.8 road miles, 5.92 h driving and 2.00 h on duty. It differs from the printed example because the assignment's assumptions replace the example's ad-hoc stops (1 h pickup and drop-off, no lunch, no sleeper nap), and OSRM's road distance and 55 mph replace the example's 350 miles and slower pace. The structure, totals and header fields are identical.
+The same trip planned through the app ("FMCSA sample day" example) gives 324.8 road miles, 6.00 h driving and 2.00 h on duty. It differs from the printed example because the assignment's assumptions replace the example's ad-hoc stops (1 h pickup and drop-off, no lunch, no sleeper nap), and OSRM's road distance and 55 mph replace the example's 350 miles and slower pace. The structure, totals and header fields are identical.
 
 ## Architecture
 
@@ -113,7 +117,7 @@ backend/
       places.py, route_path.py, locations.py   offline "nearest city" lookup along the route
     utils/                 polyline decoding, geo math, http client, cache keys, time helpers
     data/us_places.csv     17k US places from GeoNames (generated by scripts/build_places.py)
-  tests/                   1,072 tests
+  tests/                   1,075 tests
 
 frontend/src/
   api/                     fetch client, endpoints
@@ -189,7 +193,7 @@ Both are GET requests, so retries are safe. Results are cached for 24 hours. Req
 Backend (`backend/`):
 
 ```bash
-uv run pytest        # 1,072 tests
+uv run pytest        # 1,075 tests
 uv run ruff check .  # lint, including complexity limits
 ```
 
@@ -201,7 +205,7 @@ uv run ruff check .  # lint, including complexity limits
 Frontend (`frontend/`):
 
 ```bash
-npm test             # 89 unit and component tests (Vitest and Testing Library)
+npm test             # 94 unit and component tests (Vitest and Testing Library)
 npm run test:e2e     # 10 browser tests (Playwright); add PLAYWRIGHT_CHANNEL=chrome to use installed Chrome,
                      # otherwise run `npx playwright install chromium` once
 npm run lint         # oxlint, including a 40-line function limit
