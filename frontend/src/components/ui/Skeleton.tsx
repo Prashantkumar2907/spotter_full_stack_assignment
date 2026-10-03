@@ -1,10 +1,5 @@
-import { cx } from '../../utils/cx'
-import styles from './Skeleton.module.css'
+import { Skeleton as MantineSkeleton } from '@mantine/core'
 
-interface SkeletonProps {
-  className?: string
-}
-
-export function Skeleton({ className }: SkeletonProps) {
-  return <div className={cx(styles.skeleton, className)} aria-hidden="true" />
+export function Skeleton({ className }: { className?: string }) {
+  return <MantineSkeleton className={className} radius={0} aria-hidden="true" />
 }

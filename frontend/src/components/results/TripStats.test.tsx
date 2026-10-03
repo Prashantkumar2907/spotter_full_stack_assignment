@@ -7,11 +7,11 @@ describe('TripStats', () => {
   it('labels every headline number', () => {
     render(<TripStats plan={samplePlan} />)
     const panel = screen.getByLabelText('Trip summary')
-    for (const label of ['Distance', 'Driving', 'Trip time', 'Daily logs', 'Stops']) {
+    for (const label of ['Distance', 'Driving', 'Trip time', 'Stops']) {
       expect(within(panel).getAllByText(label).length).toBeGreaterThan(0)
     }
     expect(within(panel).getByText('7 h 55 min')).toBeInTheDocument()
-    expect(within(panel).getByText('0 fuel · 0 rests · 0 breaks')).toBeInTheDocument()
+    expect(within(panel).queryByText(/fuel|rest|break/)).not.toBeInTheDocument()
   })
 
   it('shows the duty mix with hours per status', () => {

@@ -31,6 +31,11 @@ export function formatLongDay(iso: string): string {
   return longDayFormat.format(parseNaiveIso(iso))
 }
 
+export function formatMoment(ms: number): string {
+  const date = new Date(ms)
+  return `${dayFormat.format(date)} · ${clockFormat.format(date)}`
+}
+
 export function formatDateTime(iso: string): string {
   return `${formatDay(iso)}, ${formatClock(iso)}`
 }

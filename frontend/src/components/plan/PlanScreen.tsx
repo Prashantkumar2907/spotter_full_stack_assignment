@@ -1,8 +1,7 @@
-import { ArrowLeft } from 'lucide-react'
 import type { ApiError } from '../../api/client'
 import type { TripFormController } from '../../hooks/useTripForm'
+import { ColorSchemeToggle } from '../layout/ColorSchemeToggle'
 import { TripForm } from '../trip-form/TripForm'
-import { Button } from '../ui/Button'
 import { HeroPanel } from './HeroPanel'
 import styles from './PlanScreen.module.css'
 
@@ -10,21 +9,19 @@ interface PlanScreenProps {
   form: TripFormController
   loading: boolean
   error: ApiError | null
-  onBackToResults?: () => void
+  onRetry: () => void
 }
 
-export function PlanScreen({ form, loading, error, onBackToResults }: PlanScreenProps) {
+export function PlanScreen({ form, loading, error, onRetry }: PlanScreenProps) {
   return (
     <main className={styles.screen}>
       <HeroPanel onPickExample={form.loadExample} loading={loading} />
       <section className={`${styles.formSide} scroll-thin`} aria-label="Trip form">
-        {onBackToResults && (
-          <Button variant="ghost" size="sm" icon={ArrowLeft} onClick={onBackToResults} className={styles.back}>
-            Back to results
-          </Button>
-        )}
-        <TripForm form={form} loading={loading} error={error} />
+        <div className={styles.column}>
+          <TripForm form={form} loading={loading} error={error} onRetry={onRetry} />
+        </div>
       </section>
+      <ColorSchemeToggle className={styles.theme} tooltip="left" />
     </main>
   )
 }

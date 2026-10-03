@@ -126,6 +126,7 @@ const REMARK_ACTIVITY_LABELS: Record<string, string> = {
   break: '30 min break',
   rest: '10 hr break (sleeper)',
   restart: '34 hr restart',
+  after_trip: 'End of trip',
 }
 
 export function activityLabel(activity: string): string {

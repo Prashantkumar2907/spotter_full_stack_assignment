@@ -4,8 +4,12 @@ const decimalFormat = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,
 })
 
+export function formatNumber(value: number): string {
+  return milesFormat.format(value)
+}
+
 export function formatMiles(miles: number): string {
-  return `${milesFormat.format(miles)} mi`
+  return `${formatNumber(miles)} mi`
 }
 
 export function formatMilesDecimal(miles: number): string {

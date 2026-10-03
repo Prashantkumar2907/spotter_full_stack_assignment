@@ -1,5 +1,6 @@
 import 'leaflet/dist/leaflet.css'
 import { MapContainer, TileLayer, ZoomControl } from 'react-leaflet'
+import type { TripReplay } from '../../hooks/useTripReplay'
 import type { TripPlan } from '../../types/trip'
 import { hasDeadheadLeg, stopKindsPresent } from '../../utils/duty'
 import { FocusStop, KeepSized, type FitPadding } from './mapEffects'
@@ -20,9 +21,10 @@ interface RouteMapProps {
   selectedStopId: number | null
   onSelectStop: (id: number) => void
   padding: FitPadding
+  trip: TripReplay
 }
 
-export default function RouteMap({ plan, selectedStopId, onSelectStop, padding }: RouteMapProps) {
+export default function RouteMap({ plan, selectedStopId, onSelectStop, padding, trip }: RouteMapProps) {
   const selected = plan.stops.find((stop) => stop.id === selectedStopId)
   const planKey = `${plan.summary.start}-${plan.summary.end}-${plan.route.polyline.length}`
   return (
@@ -40,7 +42,7 @@ export default function RouteMap({ plan, selectedStopId, onSelectStop, padding }
         <ZoomControl position="bottomleft" />
         <KeepSized />
         <FocusStop stop={selected} padding={padding} />
-        <RouteLayers key={planKey} plan={plan} selectedStopId={selectedStopId} onSelectStop={onSelectStop} padding={padding} />
+        <RouteLayers key={planKey} plan={plan} selectedStopId={selectedStopId} onSelectStop={onSelectStop} padding={padding} trip={trip} />
       </MapContainer>
       <MapLegend kinds={stopKindsPresent(plan.stops)} showDeadhead={hasDeadheadLeg(plan.route.waypoints)} />
     </div>

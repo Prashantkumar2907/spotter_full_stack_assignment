@@ -1,6 +1,6 @@
 .view {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 340px;
   gap: var(--space-4);
   height: 100%;
   min-height: 0;
@@ -8,55 +8,43 @@
   animation: global(fade-in) var(--duration-base) var(--ease-out) both;
 }
 
-.days {
+.sheetPanel {
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
   gap: var(--space-3);
-  min-height: 0;
-  padding: var(--space-4) var(--space-3);
-  animation: slide-in-left var(--duration-slow) var(--ease-out) both;
-}
-
-.daysTitle {
-  padding: 0 var(--space-1);
-  font-size: var(--text-md);
-  font-weight: 800;
-}
-
-.dayList {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .dayMeta {
-  font-size: var(--text-xs);
-  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .actions {
-  display: grid;
+  display: flex;
   gap: var(--space-2);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border);
-}
-
-.content {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 330px);
-  gap: var(--space-4);
-  min-height: 0;
 }
 
 .stage {
+  flex: 1;
   display: grid;
   place-items: center;
   min-height: 0;
-  padding: var(--space-3);
+  padding: var(--space-4);
   overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
   background:
     radial-gradient(circle at 1px 1px, var(--color-border) 1px, transparent 0) 0 0 / 18px 18px,
     var(--color-surface-sunken);
@@ -105,24 +93,15 @@
   }
 }
 
-@keyframes slide-in-left {
-  from {
-    opacity: 0;
-    transform: translateX(-14px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
+@media (max-width: 640px) {
+  .dayMeta {
+    display: none;
   }
 }
 
 @media (max-width: 1279px) {
-  .content {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .content > aside {
-    display: none;
+  .view {
+    grid-template-columns: minmax(0, 1fr) 300px;
   }
 }
 
@@ -132,12 +111,19 @@
     height: auto;
   }
 
-  .content > aside {
-    display: flex;
+  .toolbar {
+    flex-wrap: wrap;
+  }
+
+  .toolbar > [role='tablist'] {
+    max-width: 100%;
+  }
+
+  .actions {
+    margin-left: auto;
   }
 
   .stage {
-    height: auto;
     overflow-x: auto;
     place-items: start center;
   }

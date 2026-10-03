@@ -14,6 +14,8 @@ export interface PathPosition {
   heading: number
 }
 
+export const ROUTE_PREVIEW_POINTS = 700
+
 export function decimate(points: LatLng[], maxPoints: number): LatLng[] {
   if (points.length <= maxPoints) return points
   const step = (points.length - 1) / (maxPoints - 1)
@@ -64,9 +66,19 @@ export function positionAlong(path: MeasuredPath, fraction: number): PathPositio
   }
 }
 
-export function truckTransform(heading: number): string {
-  const upsideDown = Math.abs(heading) > 90
-  return `rotate(${heading.toFixed(1)}deg)${upsideDown ? ' scaleY(-1)' : ''}`
+export function pathBetween(path: MeasuredPath, from: number, to: number): LatLng[] {
+  const { points, cumulative, total } = path
+  if (points.length < 2 || to <= from) return []
+  const start = Math.max(0, from)
+  const end = Math.min(1, to)
+  const first = segmentIndex(cumulative, start * total)
+  const last = segmentIndex(cumulative, end * total)
+  return [positionAlong(path, start).point, ...points.slice(first, last), positionAlong(path, end).point]
+}
+
+export function approachAngle(current: number, target: number, rate: number): number {
+  const delta = ((target - current + 540) % 360) - 180
+  return ((current + delta * rate + 540) % 360) - 180
 }
 
 export function easeInOut(progress: number): number {

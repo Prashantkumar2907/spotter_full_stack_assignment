@@ -1,7 +1,10 @@
-.card {
-  --control-height: clamp(40px, 5.2vh, 46px);
+.form {
+  --control-height: 42px;
   display: grid;
   gap: clamp(14px, 2.4vh, 22px);
+}
+
+.card {
   width: min(560px, 100%);
   padding: clamp(22px, 4vh, 36px);
   border: 1px solid var(--color-border);
@@ -9,6 +12,10 @@
   background: var(--color-surface);
   box-shadow: var(--shadow-lg);
   animation: rise-in 0.5s var(--ease-out) both;
+}
+
+.plain {
+  gap: var(--space-5);
 }
 
 .title {
@@ -41,7 +48,6 @@
 
 @media (max-height: 720px) {
   .card {
-    --control-height: 38px;
     gap: 12px;
     padding: 18px 24px;
   }

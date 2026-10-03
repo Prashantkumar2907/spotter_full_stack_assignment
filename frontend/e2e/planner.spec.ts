@@ -36,6 +36,24 @@ test('the route draws in, then the stops and the travel marker appear', async ({
   await expect(page.locator('.route-casing')).toHaveCount(1)
 })
 
+test('the map replays the trip stop by stop, with loading and rests', async ({ page }) => {
+  const errors = collectErrors(page)
+  await mockPlan(page, plans.cycleLimit)
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Near 70 h limit' }).click()
+  const replay = page.getByRole('region', { name: 'Trip replay' })
+  await expect(replay.getByRole('button', { name: 'Pause replay' })).toBeVisible({ timeout: 10_000 })
+  await replay.getByRole('button', { name: /Replay speed/ }).click()
+  await replay.getByRole('button', { name: /Replay speed/ }).click()
+  const bubble = page.locator('.travel-pin__label')
+  await expect(bubble).toHaveText(/34-hour restart/, { timeout: 15_000 })
+  await expect(bubble).toHaveText(/Loading/, { timeout: 15_000 })
+  await expect(page.getByRole('region', { name: 'Itinerary' })).toContainText('Now')
+  await expect(replay).toContainText('Trip complete', { timeout: 30_000 })
+  await expect(replay.getByRole('button', { name: 'Replay trip' })).toBeVisible()
+  expect(errors).toEqual([])
+})
+
 test('the FMCSA sample sheet is filled like a paper log', async ({ page }) => {
   const errors = collectErrors(page)
   const requests = await mockPlan(page, plans.fmcsaSample)
@@ -71,7 +89,7 @@ test('a 5-day trip with a 34-hour restart has a day for every sheet', async ({ p
   await page.goto('/')
   await page.getByRole('button', { name: 'Near 70 h limit' }).click()
   await expect(page.getByRole('tablist', { name: 'Itinerary days' }).getByRole('tab')).toHaveCount(5)
-  await expect(page.getByRole('complementary', { name: 'Itinerary' })).toContainText('34-hour restart')
+  await expect(page.getByRole('region', { name: 'Itinerary' })).toContainText('34-hour restart')
   await page.getByRole('tab', { name: /Daily logs · 5/ }).click()
   const days = page.getByRole('tablist', { name: 'Log sheet days' }).getByRole('tab')
   await expect(days).toHaveCount(5)
@@ -79,7 +97,7 @@ test('a 5-day trip with a 34-hour restart has a day for every sheet', async ({ p
   await expect(page.getByRole('img', { name: /daily log for 2026-10-06/i })).toContainText('TOTAL HOURS')
 })
 
-test('editing keeps the values and re-planning returns to fresh results without errors', async ({ page }) => {
+test('editing opens a drawer over the results with the values kept and updates the plan in place', async ({ page }) => {
   const errors = collectErrors(page)
   let call = 0
   await page.route('**/api/trips/plan/', (route) => {
@@ -89,12 +107,41 @@ test('editing keeps the values and re-planning returns to fresh results without 
   await page.goto('/')
   await page.getByRole('button', { name: 'FMCSA sample', exact: true }).click()
   await page.getByRole('tab', { name: /Daily logs/ }).click()
-  await page.getByRole('button', { name: 'Edit' }).click()
-  await expect(page.getByRole('combobox', { name: 'Drop-off' })).toHaveValue('Newark, NJ')
-  await page.getByRole('button', { name: 'Near 70 h limit' }).click()
+  await page.getByRole('button', { name: 'Edit trip' }).click()
+  const drawer = page.getByRole('dialog', { name: 'Edit trip' })
+  await expect(drawer.getByRole('combobox', { name: 'Drop-off' })).toHaveValue('Newark, NJ')
+  await expect(page.getByRole('heading', { name: /Every mile planned/ })).toBeHidden()
+  await drawer.getByRole('button', { name: 'Update trip' }).click()
+  await expect(drawer).toBeHidden()
   await expect(page.getByRole('tab', { name: /Daily logs · 5/ })).toBeVisible()
   await expect(page.getByLabel('Route map')).toBeVisible()
   expect(errors).toEqual([])
+})
+
+test('log sheet details open in a compact dialog that closes with Escape and keeps what was typed', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: /Log sheet details/ }).click()
+  const dialog = page.getByRole('dialog', { name: 'Log sheet details' })
+  await dialog.getByLabel('Driver').fill('Maria Alvarez')
+  const box = await dialog.boundingBox()
+  expect(box?.width).toBeLessThanOrEqual(520)
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+  await expect(page.getByRole('button', { name: /Log sheet details/ })).toContainText('1 added')
+})
+
+test('an unreachable planner offers a retry that plans the trip', async ({ page }) => {
+  let call = 0
+  await page.route('**/api/trips/plan/', (route) =>
+    call++ === 0
+      ? route.fulfill({ status: 502, contentType: 'text/plain', body: '' })
+      : route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(plans.fmcsaSample) }),
+  )
+  await page.goto('/')
+  await page.getByRole('button', { name: 'FMCSA sample', exact: true }).click()
+  await expect(page.getByRole('alert')).toContainText('not responding')
+  await page.getByRole('button', { name: 'Try again' }).click()
+  await expect(page.getByLabel('Trip summary')).toBeVisible()
 })
 
 test('a server error keeps the user on the form with the message', async ({ page }) => {

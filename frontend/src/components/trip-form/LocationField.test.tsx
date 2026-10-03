@@ -1,10 +1,11 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { LocationValue } from '../../types/form'
 import type { Place } from '../../types/trip'
 import { LocationField } from './LocationField'
+import { renderWithProviders } from '../../test/render'
 
 const searchLocations = vi.fn()
 vi.mock('../../api/trips', () => ({ searchLocations: (...args: unknown[]) => searchLocations(...args) }))
@@ -36,7 +37,7 @@ describe('LocationField', () => {
   it('shows suggestions after typing and selects one with the keyboard', async () => {
     const onChange = vi.fn()
     const user = userEvent.setup()
-    render(<Harness onChange={onChange} />)
+    renderWithProviders(<Harness onChange={onChange} />)
     const input = screen.getByRole('combobox', { name: 'Current location' })
     await user.type(input, 'Ri')
     const options = await screen.findAllByRole('option')
@@ -49,7 +50,7 @@ describe('LocationField', () => {
 
   it('selects a suggestion with the mouse', async () => {
     const user = userEvent.setup()
-    render(<Harness />)
+    renderWithProviders(<Harness />)
     await user.type(screen.getByRole('combobox'), 'Ric')
     await user.click(await screen.findByRole('option', { name: /Richmond/ }))
     expect(screen.getByRole('combobox')).toHaveValue('Richmond, VA')
@@ -59,7 +60,7 @@ describe('LocationField', () => {
   it('forgets the picked place when the text is edited', async () => {
     const onChange = vi.fn()
     const user = userEvent.setup()
-    render(<Harness onChange={onChange} />)
+    renderWithProviders(<Harness onChange={onChange} />)
     const input = screen.getByRole('combobox')
     await user.type(input, 'Ric')
     await user.click(await screen.findByRole('option', { name: /Richmond/ }))
@@ -69,7 +70,7 @@ describe('LocationField', () => {
 
   it('clears the field with the clear button', async () => {
     const user = userEvent.setup()
-    render(<Harness />)
+    renderWithProviders(<Harness />)
     await user.type(screen.getByRole('combobox'), 'abc')
     await user.click(screen.getByRole('button', { name: /clear current location/i }))
     expect(screen.getByRole('combobox')).toHaveValue('')
@@ -77,7 +78,7 @@ describe('LocationField', () => {
 
   it('does not search for a single character', async () => {
     const user = userEvent.setup()
-    render(<Harness />)
+    renderWithProviders(<Harness />)
     await user.type(screen.getByRole('combobox'), 'R')
     await new Promise((resolve) => setTimeout(resolve, 400))
     expect(searchLocations).not.toHaveBeenCalled()
@@ -86,7 +87,7 @@ describe('LocationField', () => {
   it('tells the user when search is unavailable', async () => {
     searchLocations.mockRejectedValue(new Error('boom'))
     const user = userEvent.setup()
-    render(<Harness />)
+    renderWithProviders(<Harness />)
     await user.type(screen.getByRole('combobox'), 'Zz')
     expect(await screen.findByText(/search is unavailable/i)).toBeInTheDocument()
   })

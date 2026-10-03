@@ -1,0 +1,35 @@
+.truck-trailer {
+  fill: var(--truck-trailer, #f8fafc);
+  stroke: var(--truck-outline, none);
+  stroke-width: 0.8;
+}
+
+.truck-cargo {
+  fill: var(--truck-cargo, transparent);
+}
+
+.truck-rib {
+  fill: var(--truck-rib, rgb(21 24 27 / 0.12));
+}
+
+.truck-hitch {
+  fill: var(--truck-hitch, #15181b);
+}
+
+.truck-mirror {
+  fill: var(--truck-cab, #0b7f49);
+}
+
+.truck-cab {
+  fill: var(--truck-cab, #0b7f49);
+}
+
+.truck-window {
+  fill: var(--truck-window, #ffffff);
+}
+
+.truck-wheel {
+  fill: var(--truck-wheel, #15181b);
+  stroke: var(--truck-tire, #ffffff);
+  stroke-width: 1.6;
+}

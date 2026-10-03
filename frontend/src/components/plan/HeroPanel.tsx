@@ -11,7 +11,7 @@ interface HeroPanelProps {
 
 export function HeroPanel({ onPickExample, loading }: HeroPanelProps) {
   return (
-    <section className={`ink ${styles.hero}`} aria-label="Milemark">
+    <section className={styles.hero} aria-label="Milemark">
       <Brand />
       <div className={styles.copy}>
         <h1 className={styles.title}>Every mile planned. Every hour logged.</h1>

@@ -22,7 +22,7 @@ The hard part is that the log sheets are only correct if the schedule underneath
 1. **Route.** The backend geocodes the places, asks OSRM for the driving route (one request, three waypoints) and splits it into a deadhead leg (to pickup) and a loaded leg (to drop-off).
 2. **HOS simulation.** A pure, deterministic simulation walks the route minute by minute and inserts every stop the rules require (table below).
 3. **Log sheets.** The resulting duty segments are cut at midnight into calendar-day sheets. Each sheet gets totals that add up to 24 hours, remarks with the city and state of every change of duty status, miles for the day and the 70-hour recap.
-4. **UI.** The trip is entered on a full-screen form first, then the results take over the full screen: the map with floating stats and a day-by-day itinerary, and the daily log sheets drawn as SVG replicas of the paper form supplied with the assignment. Sheets can be expanded, downloaded as PNG or printed (one sheet per page).
+4. **UI.** The trip is entered on a full-screen form first, then the results take over the full screen: the map with one side panel for the trip summary and a day-by-day itinerary, and the daily log sheets drawn as SVG replicas of the paper form supplied with the assignment. Sheets can be expanded, downloaded as PNG or printed (one sheet per page).
 
 ![Route and stops](docs/screenshots/03-route-and-stops.png)
 
@@ -45,12 +45,14 @@ The sheet keeps every field of the blank *Drivers Daily Log* supplied with the a
 
 ### Interface design
 
-- **Flow.** Enter the trip on one focused screen, watch it plan, then work with the results full screen. "Edit" returns to the form with every value kept; "New trip" starts clean.
-- **Colour.** Deep navy for the brand surfaces, one indigo for every action, a cool-gray canvas, and colour otherwise reserved for meaning: driving indigo, on duty amber, sleeper teal, off duty slate; pickup green, drop-off rose. Dark mode follows the system.
-- **Form.** The three places form a route timeline. Each node fills in as its place is entered, and the dotted connector between two filled places draws into a solid line. Optional log details open in a dialog, so the form never grows; the screen fits the window without scrolling, down to small laptop heights.
-- **Hero animation.** One 10-second clock drives everything: a navigation marker drives the route, pauses at pickup and arrives at drop-off while the log grid below draws the matching off-duty, driving and on-duty lines. The log line ends exactly when the marker arrives.
-- **Map.** The map fits the route between the floating panels, draws the route in with an eased stroke (white casing, 4 px indigo core, dotted empty leg), pops in the stops, then a direction marker glides along the route, turning with the road.
-- **Logs.** A day list with a 24-hour duty bar per day, the sheet at the largest size that fits, and a plain-language summary of every change of duty.
+- **Flow.** Enter the trip on one focused screen, watch it plan, then work with the results full screen. "Edit" opens the same form in a drawer over the results with every value kept and updates the plan in place (a failed update reopens the drawer with the message); "New trip" clears the plan and returns to the start screen with a clean form. If the planner cannot be reached, the message says so and offers "Try again".
+- **Colour.** A road-sign palette: US guide-sign green for every action, signal amber for warnings, warm paper neutrals in light mode and asphalt greys in dark mode. Colour is otherwise reserved for meaning: driving green, on duty amber, sleeper blue, off duty stone; pickup violet, drop-off red. Headings use Overpass, a typeface derived from the US highway-sign alphabet. Light and dark mode follow the system and can be switched with the sun/moon button in the top-right corner.
+- **Form.** The three places form a route timeline. Each node fills in as its place is entered, and the dotted connector between two filled places draws into a solid line. Optional log details open in a compact dialog (Escape or a click outside closes it), so the form never grows; the cycle field reads "0 of 70 h" with round +/- buttons and turns its hint amber near the limit; the screen fits the window without scrolling, down to small laptop heights.
+- **Hero animation.** A top-down map: start at the top, pickup in the middle, drop-off at the bottom, joined by an S-shaped road (a narrower local road while empty, a highway with an amber centre line once loaded). One 12-second clock drives everything: a single top-down truck eases out of each stop and into the next, turning with the road; its trailer fills with cargo during the hour at the pickup and empties at the drop-off, while each stop card shows a progress bar and then a check. Beside the road, a "Daily log" card shows the current duty status (Off duty, Driving, On duty) and draws the matching line: off duty, driving, loading, driving, unloading, off duty.
+- **Brand.** The logo is a truck driving on a road with a duty-log line on its trailer; the favicon matches.
+- **Components.** Buttons, icon buttons with tooltips, the dialogs and edit drawer, alerts, text inputs and the departure date-time picker come from Mantine, themed with the palette above; the place search, cycle field, tabs and log sheet stay purpose-built. Text actions are pill-shaped; icon-only actions are round with a tooltip.
+- **Map.** The map fits the route beside the side panel, draws the route in with an eased stroke (white casing, 4 px green core, dotted empty leg) over desaturated OpenStreetMap tiles (inverted for dark mode), pops in the stops, then replays the trip from the plan's own schedule: a top-down truck drives each leg, eases into every stop and waits there while a bubble shows what is happening (loading, fueling, 30-minute break, 10-hour rest, 34-hour restart, unloading) with a progress bar; the trailer fills with cargo at the pickup and empties at the drop-off, and the route behind the truck fills in as it goes. A replay card shows the day, trip clock, current activity and miles, with play/pause, 1×/2×/4× speed and a scrub slider, and the itinerary marks the live stop and follows its day.
+- **Logs.** A toolbar with day tabs and round expand, download and print buttons, the sheet at the largest size that fits, and a side summary: hours per line, every change of duty in plain words, the 70-hour cycle, and a collapsible key for reading the sheet.
 - **Motion and access.** Motion is transform- and opacity-based and measured at 60 fps on a 2,800-mile route; everything turns off under `prefers-reduced-motion`. Tabs support arrow keys, the place search is a proper combobox, and controls are labelled with visible focus rings.
 
 ### HOS rules implemented
@@ -127,8 +129,9 @@ frontend/src/
   hooks/                   form state, planner, location search, combobox, count-up
   utils/                   time and distance formatting, polyline, validation, itinerary, PNG export
   components/
-    ui/                    Button, IconButton, TextField, Tabs, Dialog, Alert, Meter, Disclosure, Panel, Skeleton, ErrorBoundary
-    layout/                brand
+    ui/                    Button, IconButton, TextField, Dialog, Alert, Skeleton (Mantine-backed); Tabs, Panel, ErrorBoundary
+  theme/                   Mantine theme (palette, fonts, component defaults) and provider
+    layout/                brand mark, truck art (side and top-down)
     trip-form/             sidebar form, route timeline, location combobox, cycle field, example chips
     results/               trip header, stats and duty bar, itinerary timeline, overlays, log viewer
     map/                   Leaflet route, pins, legend
@@ -171,7 +174,7 @@ Errors share one shape, `{"error": {"code", "message", "fields"?}}`: `400 valida
 | HOS engine | Integer-minute event simulation with all state in one small dataclass | Floating-point hours drift and need epsilon checks everywhere. A constraint solver is overkill for a deterministic schedule. |
 | State | Stateless API, results cached for 24 h | Persisting trips needs models, auth and migrations the brief does not ask for. |
 | Log sheet | SVG generated from the API data | HTML tables cannot draw the duty line precisely, and canvas is not crisp when printed or zoomed. SVG also exports to PNG and unit-tests on its geometry. |
-| Styling | CSS Modules with design tokens, small purpose-built component kit | Tailwind or a component library adds a dependency for a UI of this size and makes the paper-form SVG harder to keep self-contained. |
+| Styling | Mantine 9 for interactive primitives (themed), CSS Modules with design tokens for layout and the custom pieces | shadcn/ui needs a Tailwind migration of every stylesheet; Radix Themes has no date-time picker or number input. |
 
 Edge cases the design handles on purpose: cycle hours already at 70 (a 34 h restart before any work), pickup equal to current location (zero-length deadhead leg), trips that cross midnight (segments split at midnight, totals still sum to 24), a trip that ends exactly at midnight (no empty extra sheet), and a fuel limit that falls within one minute of the destination.
 
@@ -188,7 +191,7 @@ Both are GET requests, so retries are safe. Results are cached for 24 hours. Req
 
 - Planning and building the logs for a 2,798-mile, 6-day trip takes about 0.7 ms (median of 20 runs). The first request additionally decodes the route geometry and warms the place index (about 75 ms).
 - A cold plan is bounded by the external routing call (measured 1.4 s with coordinates supplied, 1.7 to 2.3 s when three places must also be geocoded, which is done in parallel). A repeat plan is served from cache in about 3 ms.
-- Responses are gzip-compressed (a 2,800-mile response is about 119 KB over the wire). The initial JS bundle is about 95 KB gzipped and the map code (Leaflet) loads lazily as a separate 49 KB chunk.
+- Responses are gzip-compressed (a 2,800-mile response is about 119 KB over the wire). The initial JS bundle is about 187 KB gzipped (Mantine and its date picker account for most of it; only the Mantine component styles in use are imported, 24 KB of CSS gzipped) and the map code (Leaflet) loads lazily as a separate 49 KB chunk.
 - The desktop layout fits the viewport without page scroll: day tabs replace long lists, and the log sheet scales to fit its panel.
 
 ## Testing
@@ -208,8 +211,8 @@ uv run ruff check .  # lint, including complexity limits
 Frontend (`frontend/`):
 
 ```bash
-npm test             # 103 unit and component tests (Vitest and Testing Library)
-npm run test:e2e     # 11 browser tests (Playwright); add PLAYWRIGHT_CHANNEL=chrome to use installed Chrome,
+npm test             # 124 unit and component tests (Vitest and Testing Library)
+npm run test:e2e     # 14 browser tests (Playwright); add PLAYWRIGHT_CHANNEL=chrome to use installed Chrome,
                      # otherwise run `npx playwright install chromium` once
 npm run lint         # oxlint, including a 40-line function limit
 npm run typecheck
@@ -246,8 +249,12 @@ Frontend (`frontend/.env.example`): `VITE_API_URL` is the backend origin when th
 
 ### Deploying
 
-- **Backend** (Render, Railway, Fly and similar): build with `pip install -r requirements.txt`, start with the included `Procfile` (gunicorn), and set the environment variables above, with `CORS_ALLOWED_ORIGINS` set to the frontend URL.
-- **Frontend** (Vercel): root directory `frontend`, build command `npm run build`, output `dist`, and `VITE_API_URL` set to the backend URL.
+Live: **https://milemark-inky.vercel.app** (frontend on Vercel) talking to **https://milemark-api.onrender.com** (Django on Render).
+
+- **Backend** (Render web service, free plan, Python): root directory `backend`, build `pip install -r requirements.txt`, start `gunicorn config.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 30`, health check `/api/health/`, build filter `backend/**`. Environment: `DJANGO_SECRET_KEY` (random), `DJANGO_DEBUG=0`, `DJANGO_ALLOWED_HOSTS=.onrender.com,localhost`, `CORS_ALLOWED_ORIGINS=https://milemark-inky.vercel.app` (the exact frontend origin, nothing else), `NUM_PROXIES=1`, `PYTHON_VERSION=3.13.7`. It was created with the Render CLI: `render services create --name milemark-api --type web_service --runtime python --repo <github url> --root-directory backend ...` (the CLI deploys from a Git repo, so the repo must be connected to Render).
+- **Frontend** (Vercel): root directory `frontend`, build `npm run build`, output `dist` (`frontend/vercel.json`), and the production environment variable `VITE_API_URL=https://milemark-api.onrender.com` (no trailing slash). Deploy with `vercel deploy --prod` from `frontend/`.
+- **Changing the frontend URL** means updating `CORS_ALLOWED_ORIGINS` on Render, otherwise the browser blocks every API call.
+- **Free-plan cold start.** Render puts a free service to sleep after about 15 minutes without traffic, and the first request afterwards can take around a minute. The frontend sends a health request as soon as the page loads (only when `VITE_API_URL` is set), so the backend wakes while the user fills in the form.
 
 The public OSRM and Photon servers are shared community services and are meant for light use. For heavy traffic, point `OSRM_URL` and `PHOTON_URL` (in `services/routing.py` and `services/geocoding.py`) at self-hosted instances.
 

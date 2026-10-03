@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Polyline } from 'react-leaflet'
 import { useProgress } from '../../hooks/useProgress'
+import type { TripReplay } from '../../hooks/useTripReplay'
 import type { TripPlan } from '../../types/trip'
 import { decodePolyline, splitAtPoint, type LatLng } from '../../utils/polyline'
-import { decimate, easeInOut } from '../../utils/routeMotion'
+import { ROUTE_PREVIEW_POINTS, decimate, easeInOut } from '../../utils/routeMotion'
 import { FitRoute, type FitPadding } from './mapEffects'
 import { StopMarker } from './StopMarker'
 import { TravelMarker } from './TravelMarker'
@@ -13,16 +14,17 @@ interface RouteLayersProps {
   selectedStopId: number | null
   onSelectStop: (id: number) => void
   padding: FitPadding
+  trip: TripReplay
 }
 
 const PICKUP_ROLE = 'pickup'
-const PREVIEW_POINTS = 700
+
 const DRAW_MS = 1600
 
 function useRouteGeometry(plan: TripPlan) {
   return useMemo(() => {
     const points = decodePolyline(plan.route.polyline, plan.route.precision)
-    const preview = decimate(points, PREVIEW_POINTS)
+    const preview = decimate(points, ROUTE_PREVIEW_POINTS)
     const pickup = plan.route.waypoints.find((waypoint) => waypoint.role === PICKUP_ROLE)
     if (!pickup || points.length === 0) return { points, preview, toPickup: [] as LatLng[], toDropoff: points }
     const [toPickup, toDropoff] = splitAtPoint(points, [pickup.lat, pickup.lng])
@@ -39,7 +41,7 @@ function DrawingRoute({ points }: { points: LatLng[] }) {
   )
 }
 
-function DrawnRoute({ plan, selectedStopId, onSelectStop, geometry }: Omit<RouteLayersProps, 'padding'> & {
+function DrawnRoute({ plan, selectedStopId, onSelectStop, geometry, trip }: Omit<RouteLayersProps, 'padding'> & {
   geometry: ReturnType<typeof useRouteGeometry>
 }) {
   return (
@@ -52,12 +54,12 @@ function DrawnRoute({ plan, selectedStopId, onSelectStop, geometry }: Omit<Route
       {plan.stops.map((stop, index) => (
         <StopMarker key={stop.id} stop={stop} index={index} selected={stop.id === selectedStopId} onSelect={onSelectStop} />
       ))}
-      <TravelMarker path={geometry.preview} />
+      <TravelMarker path={geometry.preview} trip={trip} />
     </>
   )
 }
 
-export function RouteLayers({ plan, selectedStopId, onSelectStop, padding }: RouteLayersProps) {
+export function RouteLayers({ plan, selectedStopId, onSelectStop, padding, trip }: RouteLayersProps) {
   const geometry = useRouteGeometry(plan)
   const [fitted, setFitted] = useState(false)
   const markFitted = useCallback(() => setFitted(true), [])
@@ -68,7 +70,7 @@ export function RouteLayers({ plan, selectedStopId, onSelectStop, padding }: Rou
       <FitRoute points={geometry.points} padding={padding} onDone={markFitted} />
       {fitted && progress < 1 && <DrawingRoute points={geometry.preview.slice(0, visibleCount)} />}
       {progress >= 1 && (
-        <DrawnRoute plan={plan} selectedStopId={selectedStopId} onSelectStop={onSelectStop} geometry={geometry} />
+        <DrawnRoute plan={plan} selectedStopId={selectedStopId} onSelectStop={onSelectStop} geometry={geometry} trip={trip} />
       )}
     </>
   )

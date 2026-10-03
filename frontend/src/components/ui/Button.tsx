@@ -1,13 +1,13 @@
+import { Button as MantineButton, type ButtonVariant as MantineVariant } from '@mantine/core'
 import type { LucideIcon } from 'lucide-react'
 import type { ButtonHTMLAttributes } from 'react'
 import { cx } from '../../utils/cx'
 import styles from './Button.module.css'
-import { Spinner } from './Spinner'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 export type ButtonSize = 'sm' | 'md' | 'lg'
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'color'> {
   variant?: ButtonVariant
   size?: ButtonSize
   icon?: LucideIcon
@@ -16,7 +16,15 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean
 }
 
+const VARIANTS: Record<ButtonVariant, { variant: MantineVariant; color?: string }> = {
+  primary: { variant: 'filled' },
+  secondary: { variant: 'default' },
+  ghost: { variant: 'subtle', color: 'gray' },
+  danger: { variant: 'light', color: 'red' },
+}
+
 const ICON_SIZE: Record<ButtonSize, number> = { sm: 16, md: 18, lg: 20 }
+const MANTINE_SIZE: Record<ButtonSize, string> = { sm: 'sm', md: 'md', lg: 'lg' }
 
 export function Button({
   variant = 'primary',
@@ -25,7 +33,6 @@ export function Button({
   trailingIcon: TrailingIcon,
   loading = false,
   fullWidth = false,
-  disabled,
   className,
   type = 'button',
   children,
@@ -33,18 +40,18 @@ export function Button({
 }: ButtonProps) {
   const iconSize = ICON_SIZE[size]
   return (
-    <button
+    <MantineButton
       type={type}
-      className={cx(styles.button, styles[variant], styles[size], fullWidth && styles.full, className)}
-      disabled={disabled || loading}
-      aria-busy={loading || undefined}
+      {...VARIANTS[variant]}
+      size={MANTINE_SIZE[size]}
+      loading={loading}
+      fullWidth={fullWidth}
+      leftSection={Icon && <Icon size={iconSize} aria-hidden="true" />}
+      rightSection={TrailingIcon && <TrailingIcon size={iconSize} className={styles.trailing} aria-hidden="true" />}
+      className={cx(styles.button, className)}
       {...rest}
     >
-      {loading ? <Spinner size={iconSize} /> : Icon && <Icon size={iconSize} aria-hidden="true" />}
-      <span className={styles.label}>{children}</span>
-      {TrailingIcon && !loading && (
-        <TrailingIcon size={iconSize} className={styles.trailing} aria-hidden="true" />
-      )}
-    </button>
+      {children}
+    </MantineButton>
   )
 }

@@ -1,44 +1,29 @@
-import { CalendarClock, Clock, FileText, Fuel, Route, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { DUTY_STATUS_COLORS, DUTY_STATUS_LABELS } from '../../constants/duty'
 import type { TripPlan, TripSummary } from '../../types/trip'
 import { partsFromTotals, sumDutyHours } from '../../utils/duty'
-import { formatMiles, pluralize } from '../../utils/format'
+import { formatMiles } from '../../utils/format'
 import { formatDuration, formatElapsed } from '../../utils/time'
 import { cx } from '../../utils/cx'
 import { AnimatedNumber } from '../ui/AnimatedNumber'
-import { Panel } from '../ui/Panel'
 import { DutyBar } from './DutyBar'
 import styles from './TripStats.module.css'
 
-interface StatProps {
-  icon: LucideIcon
-  label: string
-  children: ReactNode
-  detail?: string
-}
-
-function Stat({ icon: Icon, label, children, detail }: StatProps) {
+function Stat({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className={styles.stat}>
-      <p className={styles.label}>
-        <Icon size={14} aria-hidden="true" />
-        {label}
-      </p>
-      <p className={styles.value}>{children}</p>
-      {detail && <p className={styles.detail}>{detail}</p>}
+      <dt className={styles.label}>{label}</dt>
+      <dd className={styles.value}>{children}</dd>
     </div>
   )
 }
 
-function stopsDetail(summary: TripSummary): string {
-  const rests = summary.rests + summary.restarts
-  return `${summary.fuel_stops} fuel · ${pluralize(rests, 'rest')} · ${pluralize(summary.breaks, 'break')}`
+function stopCount(summary: TripSummary): number {
+  return summary.fuel_stops + summary.breaks + summary.rests + summary.restarts
 }
 
 function DutyMix({ plan }: { plan: TripPlan }) {
-  const totals = sumDutyHours(plan.logs)
-  const parts = partsFromTotals(totals)
+  const parts = partsFromTotals(sumDutyHours(plan.logs))
   return (
     <div className={styles.mix}>
       <DutyBar parts={parts} label="Hours by duty status" />
@@ -56,27 +41,21 @@ function DutyMix({ plan }: { plan: TripPlan }) {
 
 export function TripStats({ plan, className }: { plan: TripPlan; className?: string }) {
   const { summary } = plan
-  const stops = summary.fuel_stops + summary.breaks + summary.rests + summary.restarts
   return (
-    <Panel className={cx(styles.panel, className)} aria-label="Trip summary">
-      <div className={styles.stats}>
-        <Stat icon={Route} label="Distance">
+    <section className={cx(styles.summary, className)} aria-label="Trip summary">
+      <dl className={styles.stats}>
+        <Stat label="Distance">
           <AnimatedNumber value={summary.total_miles} format={formatMiles} />
         </Stat>
-        <Stat icon={Clock} label="Driving">
+        <Stat label="Driving">
           <AnimatedNumber value={summary.driving_minutes} format={(value) => formatDuration(Math.round(value))} />
         </Stat>
-        <Stat icon={CalendarClock} label="Trip time">
-          {formatElapsed(summary.total_minutes)}
+        <Stat label="Trip time">{formatElapsed(summary.total_minutes)}</Stat>
+        <Stat label="Stops">
+          <AnimatedNumber value={stopCount(summary)} format={(value) => String(Math.round(value))} />
         </Stat>
-        <Stat icon={FileText} label="Daily logs">
-          <AnimatedNumber value={summary.days} format={(value) => String(Math.round(value))} />
-        </Stat>
-        <Stat icon={Fuel} label="Stops" detail={stopsDetail(summary)}>
-          <AnimatedNumber value={stops} format={(value) => String(Math.round(value))} />
-        </Stat>
-      </div>
+      </dl>
       <DutyMix plan={plan} />
-    </Panel>
+    </section>
   )
 }

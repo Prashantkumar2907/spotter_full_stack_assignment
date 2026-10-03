@@ -4,7 +4,7 @@ import {
   hasDeadheadLeg,
   partsFromSegments,
   partsFromTotals,
-  routeTitleParts,
+  routeStops,
   stopKindsPresent,
   sumDutyHours,
 } from './duty'
@@ -28,7 +28,10 @@ describe('duty helpers', () => {
   })
 
   it('builds a trip title without repeating a pickup at the start', () => {
-    expect(routeTitleParts(samplePlan.route.waypoints)).toEqual(['Richmond, VA', 'Newark, NJ'])
+    expect(routeStops(samplePlan.route.waypoints)).toEqual([
+      { label: 'Richmond, VA', role: 'pickup' },
+      { label: 'Newark, NJ', role: 'dropoff' },
+    ])
   })
 
   it('detects whether the truck must drive empty to the pickup', () => {

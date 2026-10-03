@@ -11,21 +11,30 @@ import styles from './StopItem.module.css'
 interface StopItemProps {
   stop: Stop
   selected: boolean
+  live?: boolean
   index: number
   onSelect: (id: number) => void
+}
+
+function stopMeta(stop: Stop): string {
+  const parts = [
+    stop.duration_minutes > 0 && formatDuration(stop.duration_minutes),
+    stop.mile > 0 && `mile ${formatMiles(stop.mile).replace(' mi', '')}`,
+  ]
+  return parts.filter(Boolean).join(' · ')
 }
 
 function stagger(index: number, tone?: string): CSSProperties {
   return { '--i': index, '--tone': tone } as CSSProperties
 }
 
-export function StopItem({ stop, selected, index, onSelect }: StopItemProps) {
+export function StopItem({ stop, selected, live = false, index, onSelect }: StopItemProps) {
   const Icon = STOP_ICONS[stop.kind]
   return (
     <li className={styles.item} style={stagger(index, stopTone(stop.kind))}>
       <button
         type="button"
-        className={cx(styles.button, selected && styles.selected)}
+        className={cx(styles.button, selected && styles.selected, live && styles.live)}
         aria-current={selected || undefined}
         onClick={() => onSelect(stop.id)}
       >
@@ -34,12 +43,12 @@ export function StopItem({ stop, selected, index, onSelect }: StopItemProps) {
           <Icon size={16} strokeWidth={2.4} aria-hidden="true" />
         </span>
         <span className={styles.body}>
-          <span className={styles.title}>{STOP_KIND_LABELS[stop.kind]}</span>
-          <span className={styles.location}>{stop.location}</span>
-          <span className={styles.meta}>
-            {stop.duration_minutes > 0 ? `${formatDuration(stop.duration_minutes)} · ` : ''}
-            mile {formatMiles(stop.mile).replace(' mi', '')}
+          <span className={styles.title}>
+            {STOP_KIND_LABELS[stop.kind]}
+            {live && <span className={styles.liveTag}>Now</span>}
           </span>
+          <span className={styles.location}>{stop.location}</span>
+          {stopMeta(stop) && <span className={styles.meta}>{stopMeta(stop)}</span>}
         </span>
       </button>
     </li>

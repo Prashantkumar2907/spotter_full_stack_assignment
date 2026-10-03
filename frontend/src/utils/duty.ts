@@ -1,5 +1,5 @@
 import { DUTY_STATUS_ORDER, MINUTES_PER_DAY } from '../constants/duty'
-import type { DailyLog, DutyStatus, LogSegment, Stop, StopKind, Waypoint } from '../types/trip'
+import type { DailyLog, DutyStatus, LogSegment, Stop, StopKind, Waypoint, WaypointRole } from '../types/trip'
 
 export interface DutyPart {
   status: DutyStatus
@@ -31,10 +31,18 @@ export function stopKindsPresent(stops: Stop[]): Set<StopKind> {
   return new Set(stops.map((stop) => stop.kind))
 }
 
-export function routeTitleParts(waypoints: Waypoint[]): string[] {
-  return waypoints
-    .map((waypoint) => waypoint.label)
-    .filter((label, index, labels) => index === 0 || label !== labels[index - 1])
+export interface RouteStop {
+  label: string
+  role: WaypointRole
+}
+
+export function routeStops(waypoints: Waypoint[]): RouteStop[] {
+  return waypoints.reduce<RouteStop[]>((stops, { label, role }) => {
+    const previous = stops[stops.length - 1]
+    if (previous?.label === label) previous.role = role
+    else stops.push({ label, role })
+    return stops
+  }, [])
 }
 
 export function hasDeadheadLeg(waypoints: Waypoint[]): boolean {

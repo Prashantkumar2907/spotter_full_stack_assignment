@@ -6,12 +6,13 @@ interface FieldShellProps {
   id: string
   label: string
   hint?: string
+  hintTone?: 'muted' | 'warning'
   error?: string
   action?: ReactNode
   children: ReactNode
 }
 
-export function FieldShell({ id, label, hint, error, action, children }: FieldShellProps) {
+export function FieldShell({ id, label, hint, hintTone = 'muted', error, action, children }: FieldShellProps) {
   return (
     <div className={styles.field}>
       <div className={styles.header}>
@@ -28,7 +29,7 @@ export function FieldShell({ id, label, hint, error, action, children }: FieldSh
         </p>
       ) : (
         hint && (
-          <p id={`${id}-hint`} className={styles.hint}>
+          <p id={`${id}-hint`} className={`${styles.hint} ${styles[hintTone]}`} aria-live="polite">
             {hint}
           </p>
         )

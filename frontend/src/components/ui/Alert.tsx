@@ -1,6 +1,6 @@
+import { Alert as MantineAlert, Group } from '@mantine/core'
 import { AlertTriangle } from 'lucide-react'
 import type { ReactNode } from 'react'
-import styles from './Alert.module.css'
 
 interface AlertProps {
   title: string
@@ -10,13 +10,11 @@ interface AlertProps {
 
 export function Alert({ title, children, action }: AlertProps) {
   return (
-    <div className={styles.alert} role="alert">
-      <AlertTriangle size={20} className={styles.icon} aria-hidden="true" />
-      <div className={styles.body}>
-        <p className={styles.title}>{title}</p>
-        {children && <p className={styles.message}>{children}</p>}
-      </div>
-      {action}
-    </div>
+    <MantineAlert role="alert" variant="light" color="red" radius="md" title={title} icon={<AlertTriangle size={18} aria-hidden="true" />}>
+      <Group justify="space-between" align="center" gap="sm" wrap="nowrap">
+        {children}
+        {action}
+      </Group>
+    </MantineAlert>
   )
 }

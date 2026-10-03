@@ -32,7 +32,7 @@ function Trailing({ label, value, loading, onClear }: TrailingProps) {
       {loading && <Spinner size={16} />}
       {value.place && <Check size={16} className={styles.confirmed} aria-label="Place selected" />}
       {value.text && (
-        <IconButton icon={X} label={`Clear ${label.toLowerCase()}`} size="sm" onClick={onClear} />
+        <IconButton icon={X} label={`Clear ${label.toLowerCase()}`} size="sm" tooltip="top" onClick={onClear} />
       )}
     </>
   )

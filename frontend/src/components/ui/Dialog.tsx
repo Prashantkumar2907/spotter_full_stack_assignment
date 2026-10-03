@@ -1,39 +1,59 @@
-import { X } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { Drawer, Modal } from '@mantine/core'
 import type { ReactNode } from 'react'
-import { cx } from '../../utils/cx'
-import { IconButton } from './IconButton'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 import styles from './Dialog.module.css'
 
 interface DialogProps {
   open: boolean
   title: string
+  description?: string
   onClose: () => void
-  actions?: ReactNode
-  size?: 'full' | 'form'
+  footer?: ReactNode
+  size?: 'full' | 'form' | 'drawer'
   children: ReactNode
 }
 
-export function Dialog({ open, title, onClose, actions, size = 'full', children }: DialogProps) {
-  const ref = useRef<HTMLDialogElement>(null)
+const FORM_WIDTH = 520
+const FULL_WIDTH = 'min(1200px, calc(100vw - 32px))'
+const DRAWER_WIDTH = 480
+const PHONE_QUERY = '(max-width: 640px)'
+const OVERLAY_OPACITY = 0.45
+const OVERLAY_BLUR = 3
+const PART_CLASSES = { content: styles.content, header: styles.header, title: styles.title, body: styles.body }
 
-  useEffect(() => {
-    const dialog = ref.current
-    if (!dialog) return
-    if (open && !dialog.open) dialog.showModal()
-    if (!open && dialog.open) dialog.close()
-  }, [open])
+type Parts = typeof Modal | typeof Drawer
 
+function DialogFrame({ parts: P, title, description, footer, children }: Omit<DialogProps, 'open' | 'onClose' | 'size'> & { parts: Parts }) {
   return (
-    <dialog ref={ref} className={cx(styles.dialog, styles[size])} aria-label={title} onClose={onClose}>
-      <header className={styles.header}>
-        <h2 className={styles.title}>{title}</h2>
-        <div className={styles.actions}>
-          {actions}
-          <IconButton icon={X} label="Close" onClick={onClose} />
-        </div>
-      </header>
-      <div className={styles.body}>{open && children}</div>
-    </dialog>
+    <>
+      <P.Overlay backgroundOpacity={OVERLAY_OPACITY} blur={OVERLAY_BLUR} />
+      <P.Content>
+        <P.Header>
+          <div className={styles.heading}>
+            <P.Title>{title}</P.Title>
+            {description && <p className={styles.description}>{description}</p>}
+          </div>
+          <P.CloseButton aria-label="Close" radius="xl" size="lg" />
+        </P.Header>
+        <P.Body>{children}</P.Body>
+        {footer && <footer className={styles.footer}>{footer}</footer>}
+      </P.Content>
+    </>
+  )
+}
+
+export function Dialog({ open, onClose, size = 'full', ...frame }: DialogProps) {
+  const phone = useMediaQuery(PHONE_QUERY)
+  if (size === 'drawer') {
+    return (
+      <Drawer.Root opened={open} onClose={onClose} position={phone ? 'bottom' : 'right'} size={phone ? 'auto' : DRAWER_WIDTH} className={styles.drawer} classNames={PART_CLASSES}>
+        <DialogFrame parts={Drawer} {...frame} />
+      </Drawer.Root>
+    )
+  }
+  return (
+    <Modal.Root opened={open} onClose={onClose} size={size === 'form' ? FORM_WIDTH : FULL_WIDTH} centered fullScreen={phone} className={styles[size]} classNames={PART_CLASSES}>
+      <DialogFrame parts={Modal} {...frame} />
+    </Modal.Root>
   )
 }

@@ -39,5 +39,14 @@ export function useTripPlanner() {
     }
   }, [])
 
-  return { ...state, submit }
+  const clearError = useCallback(() => {
+    setState((previous) => (previous.status === 'error' ? { ...previous, status: previous.plan ? 'success' : 'idle', error: null } : previous))
+  }, [])
+
+  const reset = useCallback(() => {
+    controllerRef.current?.abort()
+    setState(INITIAL_STATE)
+  }, [])
+
+  return { ...state, submit, clearError, reset }
 }

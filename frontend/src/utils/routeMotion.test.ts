@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { LatLng } from './polyline'
-import { decimate, headingBetween, measurePath, positionAlong, truckTransform } from './routeMotion'
+import { approachAngle, decimate, headingBetween, measurePath, pathBetween, positionAlong } from './routeMotion'
 
 const EQUATOR_LINE: LatLng[] = [
   [0, 0],
@@ -37,8 +37,24 @@ describe('route motion', () => {
     expect(Math.abs(headingBetween([0, 1], [0, 0]))).toBeCloseTo(180)
   })
 
-  it('flips the truck instead of driving it upside down when heading west', () => {
-    expect(truckTransform(10)).toBe('rotate(10.0deg)')
-    expect(truckTransform(170)).toBe('rotate(170.0deg) scaleY(-1)')
+  it('turns toward a heading by the short way round', () => {
+    expect(approachAngle(0, 40, 0.5)).toBeCloseTo(20)
+    expect(Math.abs(approachAngle(170, -170, 0.5))).toBeCloseTo(180)
+    expect(Math.abs(approachAngle(-170, 170, 0.5))).toBeCloseTo(180)
+    expect(approachAngle(10, 10, 0.3)).toBeCloseTo(10)
+  })
+
+  it('cuts the part of the route between two fractions', () => {
+    const path = measurePath([
+      [0, 0],
+      [0, 1],
+      [0, 2],
+    ])
+    expect(pathBetween(path, 0, 0.5)).toEqual([
+      [0, 0],
+      [0, 1],
+    ])
+    expect(pathBetween(path, 0.25, 1).at(-1)).toEqual([0, 2])
+    expect(pathBetween(path, 0.6, 0.4)).toEqual([])
   })
 })

@@ -1,4 +1,5 @@
 .screen {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(420px, 44%) minmax(0, 1fr);
   min-height: 100dvh;
@@ -18,10 +19,17 @@
     var(--color-bg);
 }
 
-.back {
+.theme {
   position: absolute;
   top: var(--space-5);
-  left: var(--space-6);
+  right: var(--space-5);
+  z-index: var(--z-raised);
+}
+
+.column {
+  display: grid;
+  gap: var(--space-2);
+  width: min(560px, 100%);
 }
 
 @media (min-width: 1100px) and (min-height: 560px) {
@@ -38,10 +46,5 @@
 
   .formSide {
     padding: var(--space-6) var(--space-4);
-  }
-
-  .back {
-    position: static;
-    justify-self: start;
   }
 }

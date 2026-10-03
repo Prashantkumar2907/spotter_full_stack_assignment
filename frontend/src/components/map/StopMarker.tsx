@@ -16,8 +16,8 @@ interface StopMarkerProps {
 function StopMarkerComponent({ stop, index, selected, onSelect }: StopMarkerProps) {
   const markerRef = useRef<LeafletMarker>(null)
   const icon = useMemo(
-    () => createStopIcon(stop.kind, { selected, index }),
-    [stop.kind, selected, index],
+    () => createStopIcon(stop.kind, { id: stop.id, selected, index }),
+    [stop.kind, stop.id, selected, index],
   )
 
   useEffect(() => {

@@ -6,6 +6,7 @@ import styles from './ControlFrame.module.css'
 interface ControlFrameProps {
   children: ReactNode
   icon?: LucideIcon
+  leading?: ReactNode
   trailing?: ReactNode
   invalid?: boolean
   disabled?: boolean
@@ -15,6 +16,7 @@ interface ControlFrameProps {
 export function ControlFrame({
   children,
   icon: Icon,
+  leading,
   trailing,
   invalid = false,
   disabled = false,
@@ -22,7 +24,7 @@ export function ControlFrame({
 }: ControlFrameProps) {
   return (
     <div className={cx(styles.frame, invalid && styles.invalid, disabled && styles.disabled, className)}>
-      {Icon && <Icon size={18} className={styles.icon} aria-hidden="true" />}
+      {leading ?? (Icon && <Icon size={18} className={styles.icon} aria-hidden="true" />)}
       {children}
       {trailing && <div className={styles.trailing}>{trailing}</div>}
     </div>

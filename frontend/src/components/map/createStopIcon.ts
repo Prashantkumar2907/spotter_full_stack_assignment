@@ -28,6 +28,7 @@ const PIN_GLYPHS: Record<StopKind, IconNode> = {
 }
 
 interface PinOptions {
+  id: number
   selected: boolean
   index: number
 }
@@ -41,7 +42,7 @@ function glyphMarkup(kind: StopKind): string {
   return svg.outerHTML
 }
 
-export function createStopIcon(kind: StopKind, { selected, index }: PinOptions): L.DivIcon {
+export function createStopIcon(kind: StopKind, { id, selected, index }: PinOptions): L.DivIcon {
   const selectedClass = selected ? ' stop-pin--selected' : ''
   const halo = selected ? '<span class="stop-pin__halo"></span>' : ''
   return L.divIcon({
@@ -49,6 +50,6 @@ export function createStopIcon(kind: StopKind, { selected, index }: PinOptions):
     iconSize: [PIN_SIZE, PIN_SIZE],
     iconAnchor: [PIN_SIZE / 2, PIN_SIZE / 2],
     popupAnchor: [0, -PIN_SIZE / 2],
-    html: `<div class="stop-pin${selectedClass}" style="--tone:${stopTone(kind)};animation-delay:${index * STAGGER_MS}ms">${halo}${glyphMarkup(kind)}</div>`,
+    html: `<div class="stop-pin${selectedClass}" data-stop-id="${id}" style="--tone:${stopTone(kind)};animation-delay:${index * STAGGER_MS}ms">${halo}${glyphMarkup(kind)}</div>`,
   })
 }

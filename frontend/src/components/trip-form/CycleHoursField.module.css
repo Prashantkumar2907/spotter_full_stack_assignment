@@ -1,11 +1,14 @@
 .input {
-  flex: 1;
-  min-width: 0;
+  flex: none;
+  width: 3ch;
+  min-width: 1.5ch;
+  field-sizing: content;
   height: calc(var(--control-height) - 2px);
   padding: 0;
   border: 0;
   background: transparent;
   outline: none;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   appearance: textfield;
 }
@@ -16,12 +19,16 @@
   appearance: none;
 }
 
-.meter {
-  display: grid;
-  gap: 4px;
+@supports (field-sizing: content) {
+  .input {
+    width: auto;
+  }
 }
 
-.remaining {
-  font-size: var(--text-xs);
+.suffix {
+  flex: none;
+  margin-right: auto;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
+  white-space: nowrap;
 }

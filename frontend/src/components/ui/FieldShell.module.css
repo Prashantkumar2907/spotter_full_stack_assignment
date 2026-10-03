@@ -31,6 +31,11 @@
   color: var(--color-text-muted);
 }
 
+.warning {
+  color: var(--color-amber);
+  font-weight: 600;
+}
+
 .error {
   color: var(--color-danger);
   animation: global(fade-up) var(--duration-base) var(--ease-out);

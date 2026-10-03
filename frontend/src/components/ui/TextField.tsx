@@ -1,12 +1,8 @@
+import { TextInput } from '@mantine/core'
 import type { LucideIcon } from 'lucide-react'
-import { useId } from 'react'
 import type { InputHTMLAttributes, ReactNode } from 'react'
-import { ControlFrame } from './ControlFrame'
-import { FieldShell } from './FieldShell'
-import { fieldDescribedBy } from './fieldIds'
-import styles from './TextField.module.css'
 
-export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> {
+export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'size'> {
   label: string
   hint?: string
   error?: string
@@ -14,19 +10,15 @@ export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElemen
   trailing?: ReactNode
 }
 
-export function TextField({ label, hint, error, icon, trailing, ...rest }: TextFieldProps) {
-  const id = useId()
+export function TextField({ label, hint, error, icon: Icon, trailing, ...rest }: TextFieldProps) {
   return (
-    <FieldShell id={id} label={label} hint={hint} error={error}>
-      <ControlFrame icon={icon} trailing={trailing} invalid={Boolean(error)} disabled={rest.disabled}>
-        <input
-          id={id}
-          className={styles.input}
-          aria-invalid={Boolean(error) || undefined}
-          aria-describedby={fieldDescribedBy(id, hint, error)}
-          {...rest}
-        />
-      </ControlFrame>
-    </FieldShell>
+    <TextInput
+      label={label}
+      description={hint}
+      error={error}
+      leftSection={Icon && <Icon size={18} aria-hidden="true" />}
+      rightSection={trailing}
+      {...rest}
+    />
   )
 }

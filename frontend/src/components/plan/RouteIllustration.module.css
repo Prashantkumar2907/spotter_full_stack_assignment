@@ -6,47 +6,159 @@
   overflow: visible;
 }
 
-.road {
+.blocks {
   fill: none;
-  stroke: var(--color-surface-hover);
-  stroke-width: 8;
-  stroke-linecap: round;
+  stroke: var(--color-border-strong);
+  stroke-width: 1;
+  opacity: 0.4;
 }
 
-.trail {
+.casing,
+.asphalt,
+.lane,
+.emptyTrail,
+.loadedTrail {
   fill: none;
-  stroke: var(--color-accent-ink);
-  stroke-width: 3;
   stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.casing {
+  stroke: var(--road-casing);
+}
+
+.asphalt {
+  stroke: var(--road-asphalt);
+}
+
+.local .casing {
+  stroke-width: 22;
+}
+
+.local .asphalt {
+  stroke-width: 19;
+}
+
+.highway .casing {
+  stroke-width: 28;
+}
+
+.highway .asphalt {
+  stroke-width: 25;
+}
+
+.lane {
+  stroke: rgb(241 240 236 / 0.55);
+  stroke-width: 1.2;
+  stroke-linecap: butt;
+  stroke-dasharray: 6 6;
+}
+
+.highway .lane {
+  stroke: #ffbf1f;
+  stroke-opacity: 0.85;
+  stroke-width: 1.4;
+  stroke-dasharray: 9 7;
+}
+
+.emptyTrail,
+.loadedTrail {
   stroke-dasharray: 1;
 }
 
-.pin {
-  stroke: var(--color-bg);
-  stroke-width: 3;
+.emptyTrail {
+  stroke: #c9c7c0;
+  stroke-width: 2.4;
 }
 
-.pinLabel {
+.loadedTrail {
+  stroke: #40ad76;
+  stroke-width: 2.8;
+}
+
+.truck {
+  --truck-trailer: #f7f6f3;
+  --truck-outline: rgb(21 24 27 / 0.4);
+  --truck-cargo: #69c094;
+  --truck-cab: #0b7f49;
+  --truck-window: #15181b;
+  --truck-hitch: #15181b;
+  --truck-rib: rgb(21 24 27 / 0.22);
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.45));
+}
+
+.pinHalo {
+  fill: var(--hero-bg);
+  opacity: 0.9;
+}
+
+.pin {
+  fill: var(--pin-tone);
+}
+
+.pulse {
+  fill: none;
+  stroke: var(--pin-tone);
+  stroke-width: 2;
+}
+
+.cardBox {
+  fill: var(--color-surface);
+  stroke: var(--color-border);
+  stroke-width: 1;
+  filter: drop-shadow(0 4px 10px var(--shadow-ink));
+}
+
+.cardTitle {
   font-family: var(--font-body);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--color-text);
+}
+
+.cardNote {
+  font-family: var(--font-body);
+  font-size: 10.5px;
   fill: var(--color-text-muted);
 }
 
-.halo {
-  fill: var(--color-accent-ink);
-  opacity: 0.22;
+.progressTrack {
+  fill: var(--color-surface-hover);
 }
 
-.puck {
+.progressFill {
+  fill: var(--pin-tone);
+}
+
+.check {
+  fill: var(--color-route);
+}
+
+.checkMark {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.badge {
+  fill: var(--color-surface-sunken);
+  stroke: currentColor;
+  stroke-opacity: 0.45;
+}
+
+.badgeText {
+  font-family: var(--font-body);
+  font-size: 9.5px;
+  font-weight: 700;
   fill: var(--color-text);
-  stroke: var(--color-accent-ink);
-  stroke-width: 2.5;
 }
 
-.arrow {
-  fill: var(--color-accent);
+.ticks {
+  fill: none;
+  stroke: var(--color-border-strong);
+  stroke-width: 1;
 }
 
 .gridRow {
@@ -57,14 +169,20 @@
 
 .rowLabel {
   font-family: var(--font-mono);
-  font-size: 7.5px;
+  font-size: 8.5px;
   fill: var(--color-text-muted);
 }
 
 .duty {
   fill: none;
-  stroke: var(--color-accent-ink);
+  stroke: var(--color-route);
   stroke-width: 2;
   stroke-linejoin: round;
   stroke-dasharray: 1;
+}
+
+.pen {
+  fill: var(--color-route);
+  stroke: var(--color-surface);
+  stroke-width: 1.5;
 }
