@@ -19,6 +19,6 @@
 }
 
 .confirmed {
-  color: var(--color-accent);
+  color: var(--color-success);
   animation: pop-in var(--duration-base) var(--ease-out);
 }

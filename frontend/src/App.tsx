@@ -1,6 +1,4 @@
-
 import styles from './App.module.css'
-import { AppHeader } from './components/layout/AppHeader'
 import { PrintSheets } from './components/results/PrintSheets'
 import { Workspace } from './components/results/Workspace'
 import { TripForm } from './components/trip-form/TripForm'
@@ -14,15 +12,9 @@ export default function App() {
   return (
     <>
       <div className={`app-root ${styles.app}`}>
-        <AppHeader loading={status === 'loading'} />
+        <TripForm form={form} loading={status === 'loading'} />
         <main className={styles.main}>
-          <TripForm form={form} loading={status === 'loading'} />
-          <Workspace
-            status={status}
-            plan={plan}
-            error={error}
-            onSample={form.loadExample}
-          />
+          <Workspace status={status} plan={plan} error={error} onSample={form.loadExample} />
         </main>
       </div>
       {plan && <PrintSheets plan={plan} />}

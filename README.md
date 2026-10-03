@@ -22,9 +22,30 @@ The hard part is that the log sheets are only correct if the schedule underneath
 1. **Route.** The backend geocodes the places, asks OSRM for the driving route (one request, three waypoints) and splits it into a deadhead leg (to pickup) and a loaded leg (to drop-off).
 2. **HOS simulation.** A pure, deterministic simulation walks the route minute by minute and inserts every stop the rules require (table below).
 3. **Log sheets.** The resulting duty segments are cut at midnight into calendar-day sheets. Each sheet gets totals that add up to 24 hours, remarks with the city and state of every change of duty status, miles for the day and the 70-hour recap.
-4. **UI.** React shows the map and an itinerary per day, and redraws each sheet as an SVG replica of the paper form, with the duty line drawn in pen blue. Sheets can be downloaded as PNG or printed (one sheet per page).
+4. **UI.** React shows the map and an itinerary per day, and redraws each sheet as an SVG replica of the paper form supplied with the assignment, with the duty line drawn in pen blue. Sheets can be expanded full screen, downloaded as PNG or printed (one sheet per page).
 
-![Daily log sheet](docs/screenshots/04-log-sheet-day1.png)
+![Daily log sheet](docs/screenshots/03-log-sheet.png)
+
+### How the log sheet follows the provided form
+
+The sheet is laid out to the proportions of the blank *Drivers Daily Log* image from the assignment, and it is filled in the way the FMCSA guide's "A Completed Log" (page 19) is filled:
+
+- Header: date as month / day / year, From and To, the two mileage boxes, the truck and trailer box, and the carrier, main office and home terminal lines.
+- Grid: a black band with Mid-night, 1 to 11, Noon, 1 to 11, Mid-night and Total Hours. The four duty rows have quarter-hour ticks, hanging from the top on rows 1 and 2 and standing on rows 3 and 4 as on the form. A continuous pen line steps between rows at every change of duty status.
+- Totals: one figure per row and a double-ruled `=24.00`.
+- Remarks: as in the FMCSA example, each place where the driver stopped is bracketed under the grid for the time spent there, and the city and state are written at an angle below it. A trip that starts by driving gets a single tick. Shipping documents sit bottom-left, and the instruction line sits in the gap of the bottom rule.
+- Recap: written on lines, not boxes. "On duty hours today" and A / B / C for 70 hour / 8 day drivers are filled; the 60 hour / 7 day columns stay blank (not applicable), and the 34-hour note is in its own column.
+
+![FMCSA sample day as drawn by the app](docs/screenshots/04-fmcsa-sample-sheet.png)
+
+### Interface design
+
+- A navy sidebar holds every input; the light workspace shows the results. Signal orange is used only for actions and the current selection; the duty statuses keep their own colors everywhere (driving blue, on duty amber, sleeper violet, off duty slate).
+- The route fields are drawn as a connected timeline (current location, then pickup, then drop-off), with a cycle-hours meter, a stepper and quick example trips.
+- On desktop the page never scrolls: day tabs replace long lists, the log sheet scales to fit, and "Expand" opens it full screen.
+- The trip title, stats and a duty-hours bar summarise the plan. The itinerary is a timeline per day with drive legs between stops, and a day spent entirely in a restart says so. Each day card on the Logs tab carries a mini 24-hour duty bar.
+- Motion is limited to transform and opacity: staggered entrances, count-up numbers, a pen reveal on each sheet, and pin and tab transitions. All of it is turned off under `prefers-reduced-motion`. Dark mode follows the system.
+- Accessibility: proper tabs with arrow-key navigation, combobox semantics on the place search, labelled controls, visible focus rings, and 44 px touch targets.
 
 ### HOS rules implemented
 
@@ -99,9 +120,10 @@ frontend/src/
   hooks/                   form state, planner, location search, combobox, count-up
   utils/                   time and distance formatting, polyline, validation, itinerary, PNG export
   components/
-    ui/                    Button, IconButton, TextField, SelectField, Tabs, Badge, Alert, Meter, Disclosure, Panel, Skeleton
-    trip-form/             location combobox, cycle field, form
-    results/               summary, itinerary, tabs, overlays, log viewer
+    ui/                    Button, IconButton, TextField, Tabs, Dialog, Alert, Meter, Disclosure, Panel, Skeleton, ErrorBoundary
+    layout/                brand
+    trip-form/             sidebar form, route timeline, location combobox, cycle field, example chips
+    results/               trip header, stats and duty bar, itinerary timeline, overlays, log viewer
     map/                   Leaflet route, pins, legend
     logs/sheet/            the paper log as SVG (header, grid, remarks, recap)
   styles/                  design tokens (light and dark), global, map, print
@@ -179,15 +201,19 @@ uv run ruff check .  # lint, including complexity limits
 Frontend (`frontend/`):
 
 ```bash
-npm test             # 66 tests (Vitest and Testing Library)
+npm test             # 89 unit and component tests (Vitest and Testing Library)
+npm run test:e2e     # 10 browser tests (Playwright); add PLAYWRIGHT_CHANNEL=chrome to use installed Chrome,
+                     # otherwise run `npx playwright install chromium` once
 npm run lint         # oxlint, including a 40-line function limit
 npm run typecheck
 npm run build
 ```
 
-Covers utilities (time, polyline, validation, itinerary), the SVG sheet geometry and rendered content, the location combobox (typing, keyboard and mouse selection, clearing, outage), and the whole app flow with a mocked API (validation, planning, tab switch, server and network errors, example loading, cycle stepper).
+Unit and component tests cover utilities (time, polyline, validation, itinerary, duty math), the SVG sheet geometry (including the six remark brackets of the FMCSA completed log), the rendered sheet, tabs with keyboard navigation, the location combobox (typing, keyboard and mouse selection, clearing, outage), example chips, stats, legend, the itinerary's restart days, and the whole app flow with a mocked API.
 
-End-to-end in a real Chrome against the running stack (backend on `:8000`, Vite on `:5173`): empty state, validation messages, typeahead with keyboard selection, a typed trip, the FMCSA sample day, a 6-day cross-country trip with day tabs and stop focus, the near-70-hour example (34 h restart), PNG download, print (6 pages for 6 sheets), dark mode, and a 390 px mobile layout with no horizontal scroll. Screenshots are in `docs/screenshots/`.
+The Playwright suite (`frontend/e2e/`) runs the real app in Chrome against fixtures recorded from the real backend, with map tiles stubbed, so it is deterministic and works offline. It covers validation, the FMCSA sample sheet's content, expand and Escape, PNG download, a 5-day trip with a 34-hour restart, typed place selection, server errors, no page scroll at 1440 x 900, no sideways scroll on a phone, and a regression test for re-planning while the map is hidden.
+
+End-to-end in a real Chrome against the running stack (backend on `:8000`, Vite on `:5173`): empty state, validation messages, typeahead with keyboard selection, a typed trip, the FMCSA sample day, a 6-day cross-country trip with day tabs and stop focus, the near-70-hour example (34 h restart), PNG download, print (6 pages for 6 sheets), dark mode, and a 390 px mobile layout with no horizontal scroll. Screenshots, including dark mode and phone, are in `docs/screenshots/`.
 
 ## Running locally
 

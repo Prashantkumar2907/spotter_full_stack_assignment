@@ -1,0 +1,42 @@
+.route {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stop {
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  column-gap: var(--space-3);
+}
+
+.stop:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 64px;
+  bottom: -40px;
+  border-left: 2px dashed var(--color-border-strong);
+}
+
+.node {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-top: 34px;
+  border-radius: 50%;
+  background: var(--tone);
+  color: var(--glyph);
+  box-shadow: 0 0 0 4px var(--color-bg);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.stop:focus-within .node {
+  transform: scale(1.12);
+}

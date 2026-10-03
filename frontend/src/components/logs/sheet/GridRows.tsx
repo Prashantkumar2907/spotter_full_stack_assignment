@@ -3,7 +3,6 @@ import { Label } from './SheetPrimitives'
 import {
   GRID_WIDTH,
   GRID_X,
-  PAD,
   ROW_HEIGHT,
   STATUS_ROWS,
   rowTop,
@@ -27,17 +26,18 @@ const ROW_CAPTIONS: Record<DutyStatus, string[]> = {
 
 const FIRST_STANDING_ROW = 2
 const CAPTION_INDENT = 14
+const CAPTION_X = 40
 
 function RowCaption({ status, top }: { status: DutyStatus; top: number }) {
   const [first, second] = ROW_CAPTIONS[status]
   const baseline = top + ROW_HEIGHT / 2 + (second ? -2 : 4)
   return (
     <g>
-      <Label x={PAD + 8} y={baseline} size={11} weight={700}>
+      <Label x={CAPTION_X} y={baseline} size={12} weight={700}>
         {`${ROW_NUMBERS[status]} ${first}`}
       </Label>
       {second && (
-        <Label x={PAD + 8 + CAPTION_INDENT} y={baseline + 12} size={10.5} weight={600}>
+        <Label x={CAPTION_X + CAPTION_INDENT} y={baseline + 12} size={11} weight={700}>
           {second}
         </Label>
       )}

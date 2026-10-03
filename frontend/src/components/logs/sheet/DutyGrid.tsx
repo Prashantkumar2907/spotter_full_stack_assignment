@@ -1,35 +1,28 @@
+import { useId } from 'react'
 import type { DailyLog } from '../../../types/trip'
 import { formatHours } from '../../../utils/time'
 import { GridRows } from './GridRows'
 import { HourBand } from './HourBand'
 import { PenText } from './SheetPrimitives'
 import {
-  MARKER_LANES,
-  MARKER_RADIUS,
+  BRACKET_DEPTH,
+  GRID_WIDTH,
+  GRID_X,
+  ROW_HEIGHT,
   ROWS_BOTTOM,
+  ROWS_Y,
   STATUS_ROWS,
+  TOTALS_LEFT,
   TOTALS_RIGHT,
   buildDutyPath,
   minuteToX,
   rowCenterY,
+  type RemarkMark,
 } from './sheetLayout'
 import { INK, PEN } from './sheetTheme'
 
-const TOTAL_RULE_WIDTH = 54
-const MARKER_LANE_GAP = 2 * MARKER_RADIUS
-const MARKER_FIRST_OFFSET = 14
-
-function Rule({ y }: { y: number }) {
-  return (
-    <line
-      x1={TOTALS_RIGHT - TOTAL_RULE_WIDTH}
-      x2={TOTALS_RIGHT}
-      y1={y}
-      y2={y}
-      stroke={INK}
-      strokeWidth={1}
-    />
-  )
+function Rule({ y, width = 1.2 }: { y: number; width?: number }) {
+  return <line x1={TOTALS_LEFT} x2={TOTALS_RIGHT} y1={y} y2={y} stroke={INK} strokeWidth={width} />
 }
 
 function TotalsColumn({ log }: { log: DailyLog }) {
@@ -40,74 +33,61 @@ function TotalsColumn({ log }: { log: DailyLog }) {
         const y = rowCenterY(status)
         return (
           <g key={status}>
-            <PenText x={TOTALS_RIGHT - 6} y={y + 4} anchor="end" size={13}>
+            <PenText x={TOTALS_RIGHT - 4} y={y + 6} anchor="end" size={15}>
               {formatHours(log.totals[status])}
             </PenText>
-            <Rule y={y + 10} />
+            <Rule y={y + ROW_HEIGHT / 2 - 2} />
           </g>
         )
       })}
-      <PenText x={TOTALS_RIGHT - 6} y={ROWS_BOTTOM + 18} anchor="end" size={13}>
-        {`= ${formatHours(grandTotal)}`}
+      <PenText x={TOTALS_RIGHT - 4} y={ROWS_BOTTOM + 24} anchor="end" size={15}>
+        {`=${formatHours(grandTotal)}`}
       </PenText>
-      <Rule y={ROWS_BOTTOM + 23} />
-      <Rule y={ROWS_BOTTOM + 26} />
+      <Rule y={ROWS_BOTTOM + 30} width={1.6} />
+      <Rule y={ROWS_BOTTOM + 34} width={1.6} />
     </g>
   )
 }
 
 function DutyLine({ log }: { log: DailyLog }) {
-  return (
-    <path
-      className="sheet-pen"
-      d={buildDutyPath(log.segments)}
-      pathLength={1}
-      fill="none"
-      stroke={PEN}
-      strokeWidth={3}
-      strokeLinejoin="miter"
-      strokeLinecap="butt"
-    />
-  )
-}
-
-function ChangeMarker({ number, minute, lane }: { number: number; minute: number; lane: number }) {
-  const x = minuteToX(minute)
-  const y = ROWS_BOTTOM + MARKER_FIRST_OFFSET + lane * MARKER_LANE_GAP
+  const clipId = `pen-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
   return (
     <g>
-      <line x1={x} x2={x} y1={ROWS_BOTTOM} y2={y - MARKER_RADIUS} stroke={PEN} strokeWidth={1} />
-      <circle cx={x} cy={y} r={MARKER_RADIUS} fill="#fff" stroke={PEN} strokeWidth={1.2} />
-      <PenText x={x} y={y + 3.2} anchor="middle" size={9}>
-        {String(number)}
-      </PenText>
+      <clipPath id={clipId}>
+        <rect className="sheet-reveal" x={GRID_X - 4} y={ROWS_Y - 4} width={GRID_WIDTH + 8} height={ROW_HEIGHT * 4 + 8} />
+      </clipPath>
+      <path
+        className="sheet-duty-line"
+        clipPath={`url(#${clipId})`}
+        d={buildDutyPath(log.segments)}
+        fill="none"
+        stroke={PEN}
+        strokeWidth={3}
+        strokeLinejoin="miter"
+        strokeLinecap="square"
+      />
     </g>
   )
 }
 
-function ChangeMarkers({ log }: { log: DailyLog }) {
-  return (
-    <g>
-      {log.remarks.map((remark, index) => (
-        <ChangeMarker
-          key={`${remark.minute}-${index}`}
-          number={index + 1}
-          minute={remark.minute}
-          lane={index % MARKER_LANES}
-        />
-      ))}
-    </g>
-  )
+function Bracket({ mark }: { mark: RemarkMark }) {
+  const x1 = minuteToX(mark.startMinute)
+  const x2 = minuteToX(mark.endMinute)
+  const bottom = ROWS_BOTTOM + BRACKET_DEPTH
+  const d = x2 > x1 ? `M${x1} ${ROWS_BOTTOM}V${bottom}H${x2}V${ROWS_BOTTOM}` : `M${x1} ${ROWS_BOTTOM}V${bottom}`
+  return <path d={d} fill="none" stroke={PEN} strokeWidth={1.8} />
 }
 
-export function DutyGrid({ log }: { log: DailyLog }) {
+export function DutyGrid({ log, marks }: { log: DailyLog; marks: RemarkMark[] }) {
   return (
     <g>
       <HourBand />
       <GridRows />
       <DutyLine log={log} />
+      {marks.map((mark) => (
+        <Bracket key={`${mark.startMinute}-${mark.location}`} mark={mark} />
+      ))}
       <TotalsColumn log={log} />
-      <ChangeMarkers log={log} />
     </g>
   )
 }

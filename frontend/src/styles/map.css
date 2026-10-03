@@ -1,6 +1,5 @@
 :root {
-  --pin-glyph: light-dark(#ffffff, #0b1410);
-  --map-casing: light-dark(#ffffff, #0b1410);
+  --map-casing: light-dark(#ffffff, #0b1220);
 }
 
 .leaflet-container {
@@ -26,7 +25,7 @@
 }
 
 .route-line--loaded {
-  stroke: var(--color-accent);
+  stroke: var(--color-blue);
 }
 
 .route-line--deadhead {
@@ -47,6 +46,7 @@
   height: 36px;
   border: 3px solid var(--map-casing);
   border-radius: 50%;
+  background: var(--tone);
   color: var(--pin-glyph);
   box-shadow: var(--shadow-md);
   animation: pop-in var(--duration-slow) var(--ease-out) both;
@@ -57,22 +57,6 @@
   transform: scale(1.12);
 }
 
-.stop-pin--accent {
-  background: var(--color-accent);
-}
-
-.stop-pin--amber {
-  background: var(--color-amber);
-}
-
-.stop-pin--blue {
-  background: var(--color-blue);
-}
-
-.stop-pin--slate {
-  background: var(--color-slate);
-}
-
 .stop-pin--selected {
   transform: scale(1.18);
 }
@@ -81,8 +65,7 @@
   position: absolute;
   inset: -3px;
   border-radius: 50%;
-  border: 2px solid currentColor;
-  color: var(--color-text);
+  border: 3px solid var(--color-accent);
   animation: pulse-ring 1.6s var(--ease-out) infinite;
   pointer-events: none;
 }
@@ -123,7 +106,7 @@
 }
 
 .leaflet-control-attribution a {
-  color: var(--color-accent) !important;
+  color: var(--color-blue) !important;
 }
 
 @media (prefers-color-scheme: dark) {

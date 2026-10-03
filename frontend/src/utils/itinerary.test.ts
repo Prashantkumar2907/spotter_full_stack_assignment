@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Stop } from '../types/trip'
-import { buildDayEntries, listDays } from './itinerary'
+import { buildDayEntries, listDays, ongoingStop } from './itinerary'
 
 function stop(id: number, kind: Stop['kind'], mile: number, arrive: string, depart: string, day: number): Stop {
   return {
@@ -26,8 +26,13 @@ const stops: Stop[] = [
 ]
 
 describe('itinerary entries', () => {
-  it('lists the distinct days in order', () => {
-    expect(listDays(stops)).toEqual([1, 2])
+  it('lists every log day, including days without stops', () => {
+    expect(listDays(3)).toEqual([1, 2, 3])
+  })
+
+  it('finds the stop that spans a day with no new stops', () => {
+    expect(ongoingStop(stops, '2026-10-06T00:00:00')?.kind).toBe('rest')
+    expect(ongoingStop(stops, '2026-10-05T00:00:00')).toBeUndefined()
   })
 
   it('puts a drive leg between consecutive stops of a day', () => {

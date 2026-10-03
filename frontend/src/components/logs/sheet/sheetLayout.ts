@@ -1,31 +1,29 @@
 import type { DutyStatus, LogRemark, LogSegment } from '../../../types/trip'
 
 export const SHEET_WIDTH = 1000
-export const PAD = 24
-export const GRID_X = 130
+export const SHEET_HEIGHT = 1030
+export const GRID_X = 124
 export const HOUR_WIDTH = 32
 export const HOURS_PER_DAY = 24
 export const GRID_WIDTH = HOUR_WIDTH * HOURS_PER_DAY
 export const GRID_RIGHT = GRID_X + GRID_WIDTH
-export const TOTALS_RIGHT = SHEET_WIDTH - PAD
-export const BAND_Y = 216
-export const BAND_HEIGHT = 30
+export const TOTALS_LEFT = 910
+export const TOTALS_RIGHT = 962
+export const BAND_Y = 300
+export const BAND_HEIGHT = 56
 export const ROWS_Y = BAND_Y + BAND_HEIGHT
-export const ROW_HEIGHT = 34
+export const ROW_HEIGHT = 36
 export const ROWS_BOTTOM = ROWS_Y + ROW_HEIGHT * 4
-export const MARKER_RADIUS = 8
-export const MARKER_LANES = 2
-
-export const REMARK_COLUMNS = 3
-export const REMARK_ROW_HEIGHT = 34
-export const REMARKS_LIST_X = 250
-export const REMARKS_RIGHT = SHEET_WIDTH - PAD
-const MIN_REMARKS_HEIGHT = 108
-const REMARKS_TOP_OFFSET = 48
-const REMARKS_CHROME = 48
-const RECAP_HEIGHT = 104
+export const BRACKET_DEPTH = 16
+export const REMARKS_TOP = 556
+export const REMARKS_BOTTOM = 820
+export const RECAP_TOP = 840
+export const BOTTOM_RULE = 1010
+export const LABEL_ANGLE = 60
+export const LABEL_MIN_GAP = 15
 
 const MINUTES_PER_HOUR = 60
+const PADDING_ACTIVITIES = new Set(['before_trip', 'after_trip'])
 
 export const STATUS_ROWS: DutyStatus[] = ['off_duty', 'sleeper', 'driving', 'on_duty']
 
@@ -33,16 +31,12 @@ export function minuteToX(minute: number): number {
   return Number((GRID_X + (minute / MINUTES_PER_HOUR) * HOUR_WIDTH).toFixed(2))
 }
 
-export function rowIndex(status: DutyStatus): number {
-  return STATUS_ROWS.indexOf(status)
-}
-
 export function rowTop(index: number): number {
   return ROWS_Y + index * ROW_HEIGHT
 }
 
 export function rowCenterY(status: DutyStatus): number {
-  return rowTop(rowIndex(status)) + ROW_HEIGHT / 2
+  return rowTop(STATUS_ROWS.indexOf(status)) + ROW_HEIGHT / 2
 }
 
 export function mergeAdjacent(segments: LogSegment[]): LogSegment[] {
@@ -68,6 +62,11 @@ export function buildDutyPath(segments: LogSegment[]): string {
     .join('')
 }
 
+function tickLength(quarter: number): number {
+  if (quarter % 4 === 0) return ROW_HEIGHT
+  return quarter % 2 === 0 ? ROW_HEIGHT * 0.5 : ROW_HEIGHT * 0.28
+}
+
 export function tickPath(): string {
   const parts: string[] = []
   for (let quarter = 0; quarter <= HOURS_PER_DAY * 4; quarter++) {
@@ -77,43 +76,42 @@ export function tickPath(): string {
   return parts.join('')
 }
 
-function tickLength(quarter: number): number {
-  if (quarter % 4 === 0) return ROW_HEIGHT
-  return quarter % 2 === 0 ? ROW_HEIGHT * 0.55 : ROW_HEIGHT * 0.32
+export interface RemarkMark {
+  startMinute: number
+  endMinute: number
+  location: string
 }
 
-export interface RemarkPlacement {
-  remark: LogRemark
-  number: number
-  column: number
-  row: number
+function isStationary(segment: LogSegment): boolean {
+  return segment.status !== 'driving' && !PADDING_ACTIVITIES.has(segment.activity)
 }
 
-export function placeRemarks(remarks: LogRemark[]): RemarkPlacement[] {
-  const perColumn = Math.max(1, Math.ceil(remarks.length / REMARK_COLUMNS))
-  return remarks.map((remark, index) => ({
-    remark,
-    number: index + 1,
-    column: Math.floor(index / perColumn),
-    row: index % perColumn,
-  }))
+export function buildRemarkMarks(segments: LogSegment[], remarks: LogRemark[]): RemarkMark[] {
+  const locations = new Map(remarks.map((remark) => [remark.minute, remark.location]))
+  const marks: RemarkMark[] = []
+  for (const segment of segments) {
+    const location = locations.get(segment.start_minute)
+    if (!location || segment.activity === 'before_trip') continue
+    const last = marks[marks.length - 1]
+    const continues = last && last.endMinute === segment.start_minute && last.location === location
+    if (continues) {
+      if (isStationary(segment)) last.endMinute = segment.end_minute
+      continue
+    }
+    const end = isStationary(segment) ? segment.end_minute : segment.start_minute
+    marks.push({ startMinute: segment.start_minute, endMinute: end, location })
+  }
+  return marks
 }
 
-export interface SheetLayout {
-  remarksTop: number
-  remarksHeight: number
-  footerY: number
-  recapTop: number
-  height: number
-}
-
-export function computeLayout(remarkCount: number): SheetLayout {
-  const perColumn = Math.max(1, Math.ceil(remarkCount / REMARK_COLUMNS))
-  const remarksTop = ROWS_BOTTOM + REMARKS_TOP_OFFSET
-  const remarksHeight = Math.max(MIN_REMARKS_HEIGHT, perColumn * REMARK_ROW_HEIGHT + REMARKS_CHROME)
-  const footerY = remarksTop + 20 + remarksHeight + 18
-  const recapTop = footerY + 30
-  return { remarksTop, remarksHeight, footerY, recapTop, height: recapTop + RECAP_HEIGHT + PAD / 2 }
+export function labelPositions(marks: RemarkMark[]): number[] {
+  const positions: number[] = []
+  for (const mark of marks) {
+    const natural = minuteToX(mark.startMinute) + 4
+    const previous = positions[positions.length - 1]
+    positions.push(previous === undefined ? natural : Math.max(natural, previous + LABEL_MIN_GAP))
+  }
+  return positions
 }
 
 export function wrapText(text: string, maxCharacters: number): string[] {

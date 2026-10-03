@@ -11,7 +11,7 @@ import {
   type IconNode,
 } from 'lucide'
 import type { StopKind } from '../../types/trip'
-import { STOP_TONES } from './stopVisuals'
+import { stopTone } from './stopVisuals'
 
 const PIN_SIZE = 36
 const GLYPH_SIZE = 18
@@ -42,7 +42,6 @@ function glyphMarkup(kind: StopKind): string {
 }
 
 export function createStopIcon(kind: StopKind, { selected, index }: PinOptions): L.DivIcon {
-  const tone = STOP_TONES[kind]
   const selectedClass = selected ? ' stop-pin--selected' : ''
   const halo = selected ? '<span class="stop-pin__halo"></span>' : ''
   return L.divIcon({
@@ -50,6 +49,6 @@ export function createStopIcon(kind: StopKind, { selected, index }: PinOptions):
     iconSize: [PIN_SIZE, PIN_SIZE],
     iconAnchor: [PIN_SIZE / 2, PIN_SIZE / 2],
     popupAnchor: [0, -PIN_SIZE / 2],
-    html: `<div class="stop-pin stop-pin--${tone}${selectedClass}" style="animation-delay:${index * STAGGER_MS}ms">${halo}${glyphMarkup(kind)}</div>`,
+    html: `<div class="stop-pin${selectedClass}" style="--tone:${stopTone(kind)};animation-delay:${index * STAGGER_MS}ms">${halo}${glyphMarkup(kind)}</div>`,
   })
 }

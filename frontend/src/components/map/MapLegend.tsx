@@ -1,9 +1,15 @@
+import type { CSSProperties } from 'react'
 import { STOP_KIND_LABELS } from '../../constants/duty'
 import type { StopKind } from '../../types/trip'
-import { STOP_ICONS, STOP_TONES } from './stopVisuals'
+import { STOP_ICONS, stopTone } from './stopVisuals'
 import styles from './MapLegend.module.css'
 
-const LEGEND_KINDS: StopKind[] = ['pickup', 'dropoff', 'fuel', 'break', 'rest', 'restart']
+const LEGEND_ORDER: StopKind[] = ['start', 'pickup', 'dropoff', 'fuel', 'break', 'rest', 'restart']
+
+interface MapLegendProps {
+  kinds: Set<StopKind>
+  showDeadhead: boolean
+}
 
 function LineKey({ kind, children }: { kind: 'loaded' | 'deadhead'; children: string }) {
   return (
@@ -14,16 +20,16 @@ function LineKey({ kind, children }: { kind: 'loaded' | 'deadhead'; children: st
   )
 }
 
-export function MapLegend() {
+export function MapLegend({ kinds, showDeadhead }: MapLegendProps) {
   return (
     <ul className={styles.legend} aria-label="Map legend">
-      <LineKey kind="deadhead">To pickup</LineKey>
-      <LineKey kind="loaded">To drop-off</LineKey>
-      {LEGEND_KINDS.map((kind) => {
+      {showDeadhead && <LineKey kind="deadhead">Empty to pickup</LineKey>}
+      <LineKey kind="loaded">Loaded to drop-off</LineKey>
+      {LEGEND_ORDER.filter((kind) => kinds.has(kind)).map((kind) => {
         const Icon = STOP_ICONS[kind]
         return (
           <li key={kind} className={styles.item}>
-            <span className={`${styles.swatch} ${styles[STOP_TONES[kind]]}`}>
+            <span className={styles.swatch} style={{ '--tone': stopTone(kind) } as CSSProperties}>
               <Icon size={12} strokeWidth={2.6} aria-hidden="true" />
             </span>
             {STOP_KIND_LABELS[kind]}

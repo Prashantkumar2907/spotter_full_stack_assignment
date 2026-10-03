@@ -2,6 +2,7 @@ import 'leaflet/dist/leaflet.css'
 import { MapContainer, TileLayer, ZoomControl } from 'react-leaflet'
 import type { TripPlan } from '../../types/trip'
 import { FocusStop, KeepSized } from './mapEffects'
+import { hasDeadheadLeg, stopKindsPresent } from '../../utils/duty'
 import { MapLegend } from './MapLegend'
 import { RouteLayers } from './RouteLayers'
 import styles from './RouteMap.module.css'
@@ -42,7 +43,9 @@ export default function RouteMap({ plan, selectedStopId, onSelectStop }: RouteMa
           <RouteLayers plan={plan} selectedStopId={selectedStopId} onSelectStop={onSelectStop} />
         )}
       </MapContainer>
-      {plan && <MapLegend />}
+      {plan && (
+        <MapLegend kinds={stopKindsPresent(plan.stops)} showDeadhead={hasDeadheadLeg(plan.route.waypoints)} />
+      )}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { sampleLog } from '../../../test/fixtures'
 import { LogSheet } from './LogSheet'
@@ -25,17 +25,22 @@ describe('LogSheet', () => {
 
   it('shows the totals for each duty row and the 24 hour sum', () => {
     render(<LogSheet log={sampleLog} />)
-    for (const total of ['16.08', '0.00', '5.92', '2.00', '= 24.00']) {
+    for (const total of ['16.08', '5.92', '2.00', '=24.00']) {
       expect(screen.getByText(total)).toBeInTheDocument()
     }
   })
 
-  it('lists each change of duty with time and place', () => {
+  it('writes each change-of-duty city under a bracket, like the FMCSA example', () => {
+    const { container } = render(<LogSheet log={sampleLog} />)
+    const labels = [...container.querySelectorAll('g[transform*="rotate(60)"] text')].map((node) => node.textContent)
+    expect(labels).toEqual(['Richmond, VA', 'Newark, NJ'])
+  })
+
+  it('has the blank form sections in the given order', () => {
     render(<LogSheet log={sampleLog} />)
-    expect(screen.getByText('6:00 AM')).toBeInTheDocument()
-    expect(screen.getByText('12:55 PM')).toBeInTheDocument()
-    expect(screen.getByText('Pickup, loading (on duty)')).toBeInTheDocument()
-    expect(screen.getAllByText('Newark, NJ').length).toBeGreaterThanOrEqual(2)
+    for (const text of ['Remarks', 'Shipping', 'Documents:', 'Recap:', '70 Hour/', 'Use time standard of home terminal.']) {
+      expect(screen.getByText(text)).toBeInTheDocument()
+    }
   })
 
   it('fills the 70 hour recap boxes', () => {
@@ -47,12 +52,12 @@ describe('LogSheet', () => {
   it('announces a completed restart in the recap note', () => {
     const restarted = { ...sampleLog, recap: { ...sampleLog.recap, restart_taken: true } }
     const { container } = render(<LogSheet log={restarted} />)
-    expect(within(container as HTMLElement).getByText(/34-hour restart finished today/)).toBeInTheDocument()
+    expect(container.textContent).toMatch(/Restart\s*completed\s*today/)
   })
 
   it('draws the duty line from the segments', () => {
     const { container } = render(<LogSheet log={sampleLog} />)
-    const path = container.querySelector('path.sheet-pen')
+    const path = container.querySelector('path.sheet-duty-line')
     expect(path?.getAttribute('d')).toMatch(/^M\d/)
     expect(path?.getAttribute('d')).toContain('V')
   })

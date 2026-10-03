@@ -3,11 +3,12 @@ import type { LogSegment } from '../../../types/trip'
 import {
   GRID_RIGHT,
   GRID_X,
+  LABEL_MIN_GAP,
   buildDutyPath,
-  computeLayout,
+  buildRemarkMarks,
+  labelPositions,
   mergeAdjacent,
   minuteToX,
-  placeRemarks,
   rowCenterY,
   truncate,
   wrapText,
@@ -63,23 +64,79 @@ describe('buildDutyPath', () => {
   })
 })
 
-describe('remarks layout', () => {
-  const remarks = Array.from({ length: 7 }, (_, index) => ({
-    minute: index * 60,
-    location: `Place ${index}`,
-    note: 'note',
-  }))
+const fmcsaSegments: LogSegment[] = [
+  { status: 'off_duty', activity: 'before_trip', start_minute: 0, end_minute: 360 },
+  { status: 'on_duty', activity: 'pickup', start_minute: 360, end_minute: 450 },
+  { status: 'driving', activity: 'drive', start_minute: 450, end_minute: 540 },
+  { status: 'on_duty', activity: 'fuel', start_minute: 540, end_minute: 570 },
+  { status: 'driving', activity: 'drive', start_minute: 570, end_minute: 720 },
+  { status: 'off_duty', activity: 'break', start_minute: 720, end_minute: 780 },
+  { status: 'driving', activity: 'drive', start_minute: 780, end_minute: 900 },
+  { status: 'on_duty', activity: 'dropoff', start_minute: 900, end_minute: 930 },
+  { status: 'driving', activity: 'drive', start_minute: 930, end_minute: 960 },
+  { status: 'sleeper', activity: 'rest', start_minute: 960, end_minute: 1065 },
+  { status: 'driving', activity: 'drive', start_minute: 1065, end_minute: 1140 },
+  { status: 'on_duty', activity: 'dropoff', start_minute: 1140, end_minute: 1260 },
+  { status: 'off_duty', activity: 'after_trip', start_minute: 1260, end_minute: 1440 },
+]
 
-  it('numbers remarks and fills columns top to bottom', () => {
-    const placements = placeRemarks(remarks)
-    expect(placements.map((item) => item.number)).toEqual([1, 2, 3, 4, 5, 6, 7])
-    expect(placements[0]).toMatchObject({ column: 0, row: 0 })
-    expect(placements[3]).toMatchObject({ column: 1, row: 0 })
-    expect(placements[6]).toMatchObject({ column: 2, row: 0 })
+const fmcsaRemarks = [
+  [360, 'Richmond, VA'],
+  [450, 'Richmond, VA'],
+  [540, 'Fredericksburg, VA'],
+  [570, 'Fredericksburg, VA'],
+  [720, 'Baltimore, MD'],
+  [780, 'Baltimore, MD'],
+  [900, 'Philadelphia, PA'],
+  [930, 'Philadelphia, PA'],
+  [960, 'Cherry Hill, NJ'],
+  [1065, 'Cherry Hill, NJ'],
+  [1140, 'Newark, NJ'],
+  [1260, 'Newark, NJ'],
+].map(([minute, location]) => ({ minute: minute as number, location: location as string, note: '' }))
+
+describe('remark brackets', () => {
+  it('reproduces the six brackets of the FMCSA completed log', () => {
+    expect(buildRemarkMarks(fmcsaSegments, fmcsaRemarks)).toEqual([
+      { startMinute: 360, endMinute: 450, location: 'Richmond, VA' },
+      { startMinute: 540, endMinute: 570, location: 'Fredericksburg, VA' },
+      { startMinute: 720, endMinute: 780, location: 'Baltimore, MD' },
+      { startMinute: 900, endMinute: 930, location: 'Philadelphia, PA' },
+      { startMinute: 960, endMinute: 1065, location: 'Cherry Hill, NJ' },
+      { startMinute: 1140, endMinute: 1260, location: 'Newark, NJ' },
+    ])
   })
 
-  it('grows the sheet when there are many remarks', () => {
-    expect(computeLayout(20).height).toBeGreaterThan(computeLayout(2).height)
+  it('marks a trip that starts by driving with a single tick', () => {
+    const marks = buildRemarkMarks(
+      [segment('off_duty', 0, 480), segment('driving', 480, 960), segment('off_duty', 960, 990)],
+      [
+        { minute: 480, location: 'Los Angeles, CA', note: '' },
+        { minute: 960, location: 'Cedar City, UT', note: '' },
+      ],
+    )
+    expect(marks).toEqual([
+      { startMinute: 480, endMinute: 480, location: 'Los Angeles, CA' },
+      { startMinute: 960, endMinute: 990, location: 'Cedar City, UT' },
+    ])
+  })
+
+  it('skips a status carried over from the previous day', () => {
+    const marks = buildRemarkMarks(
+      [segment('sleeper', 0, 330), segment('driving', 330, 600)],
+      [{ minute: 330, location: 'Ferron, UT', note: '' }],
+    )
+    expect(marks).toEqual([{ startMinute: 330, endMinute: 330, location: 'Ferron, UT' }])
+  })
+
+  it('keeps rotated labels from overlapping', () => {
+    const positions = labelPositions([
+      { startMinute: 600, endMinute: 630, location: 'A' },
+      { startMinute: 610, endMinute: 640, location: 'B' },
+      { startMinute: 900, endMinute: 930, location: 'C' },
+    ])
+    expect(positions[1] - positions[0]).toBeGreaterThanOrEqual(LABEL_MIN_GAP)
+    expect(positions[2]).toBe(minuteToX(900) + 4)
   })
 })
 

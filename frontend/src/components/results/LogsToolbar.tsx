@@ -1,8 +1,12 @@
-import { Download, Printer } from 'lucide-react'
+import { Download, Maximize2, Printer } from 'lucide-react'
 import type { DailyLog } from '../../types/trip'
+import { partsFromSegments } from '../../utils/duty'
+import { formatMiles } from '../../utils/format'
 import { formatDay } from '../../utils/time'
-import { Button } from '../ui/Button'
+import { IconButton } from '../ui/IconButton'
+import { Spinner } from '../ui/Spinner'
 import { Tabs } from '../ui/Tabs'
+import { DutyBar } from './DutyBar'
 import styles from './LogsView.module.css'
 
 export const LOG_TABS_PREFIX = 'log-days'
@@ -13,30 +17,54 @@ interface LogsToolbarProps {
   exporting: boolean
   onSelect: (day: number) => void
   onDownload: () => void
+  onExpand: () => void
 }
 
-export function LogsToolbar({ logs, active, exporting, onSelect, onDownload }: LogsToolbarProps) {
+function DayMeta({ log }: { log: DailyLog }) {
+  return (
+    <>
+      <span className={styles.dayMeta}>
+        {formatDay(`${log.date}T00:00:00`)} · {formatMiles(log.total_miles)}
+      </span>
+      <DutyBar parts={partsFromSegments(log.segments)} size="sm" label={`Duty timeline for ${log.date}`} />
+    </>
+  )
+}
+
+export function LogActions({ exporting, onDownload, onExpand }: Omit<LogsToolbarProps, 'logs' | 'active' | 'onSelect'>) {
+  return (
+    <div className={styles.actions} role="group" aria-label="Log sheet actions">
+      <IconButton icon={Maximize2} label="Expand sheet" onClick={onExpand} />
+      {exporting ? (
+        <span className={styles.busy}>
+          <Spinner size={18} label="Preparing PNG" />
+        </span>
+      ) : (
+        <IconButton icon={Download} label="Download PNG" onClick={onDownload} />
+      )}
+      <IconButton icon={Printer} label="Print all sheets" onClick={() => window.print()} />
+    </div>
+  )
+}
+
+export function LogsToolbar({ logs, active, exporting, onSelect, onDownload, onExpand }: LogsToolbarProps) {
   return (
     <div className={styles.toolbar}>
       <div className={styles.days}>
         <Tabs
           label="Log sheet days"
           idPrefix={LOG_TABS_PREFIX}
-          variant="pill"
+          variant="cards"
           value={String(active.day_number)}
           onChange={(id) => onSelect(Number(id))}
-          items={logs.map((item) => ({ id: String(item.day_number), label: `Day ${item.day_number}` }))}
+          items={logs.map((log) => ({
+            id: String(log.day_number),
+            label: `Day ${log.day_number}`,
+            meta: <DayMeta log={log} />,
+          }))}
         />
-        <p className={styles.date}>{formatDay(`${active.date}T00:00:00`)}</p>
       </div>
-      <div className={styles.actions}>
-        <Button variant="secondary" size="sm" icon={Download} loading={exporting} onClick={onDownload}>
-          Download PNG
-        </Button>
-        <Button variant="secondary" size="sm" icon={Printer} onClick={() => window.print()}>
-          Print all sheets
-        </Button>
-      </div>
+      <LogActions exporting={exporting} onDownload={onDownload} onExpand={onExpand} />
     </div>
   )
 }

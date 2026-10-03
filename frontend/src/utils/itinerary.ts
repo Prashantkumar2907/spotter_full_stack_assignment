@@ -19,8 +19,15 @@ export interface StopEntry {
 
 export type ItineraryEntry = DriveLeg | StopEntry
 
-export function listDays(stops: Stop[]): number[] {
-  return [...new Set(stops.map((stop) => stop.day_number))].sort((a, b) => a - b)
+export function listDays(dayCount: number): number[] {
+  return Array.from({ length: dayCount }, (_, index) => index + 1)
+}
+
+export function ongoingStop(stops: Stop[], dayStart: string): Stop | undefined {
+  const start = parseNaiveIso(dayStart).getTime()
+  return stops.find(
+    (stop) => parseNaiveIso(stop.arrive).getTime() < start && parseNaiveIso(stop.depart).getTime() > start,
+  )
 }
 
 function minutesBetween(from: string, to: string): number {

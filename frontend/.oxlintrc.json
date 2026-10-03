@@ -12,7 +12,7 @@
   },
   "overrides": [
     {
-      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "files": ["**/*.test.ts", "**/*.test.tsx", "e2e/**"],
       "rules": { "max-lines-per-function": "off" }
     }
   ]

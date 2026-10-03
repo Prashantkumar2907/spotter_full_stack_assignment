@@ -1,5 +1,4 @@
 import { Check, X } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 import { useId } from 'react'
 import { useLocationCombobox } from '../../hooks/useCombobox'
 import type { LocationValue } from '../../types/form'
@@ -15,7 +14,6 @@ import styles from './LocationField.module.css'
 interface LocationFieldProps {
   label: string
   placeholder: string
-  icon: LucideIcon
   value: LocationValue
   error?: string
   onChange: (value: LocationValue) => void
@@ -73,7 +71,7 @@ function ComboInput({ id, listId, placeholder, value, error, combo }: ComboInput
   )
 }
 
-export function LocationField({ label, placeholder, icon, value, error, onChange }: LocationFieldProps) {
+export function LocationField({ label, placeholder, value, error, onChange }: LocationFieldProps) {
   const id = useId()
   const listId = `${id}-list`
   const combo = useLocationCombobox(value, onChange)
@@ -89,7 +87,7 @@ export function LocationField({ label, placeholder, icon, value, error, onChange
   return (
     <FieldShell id={id} label={label} error={error}>
       <div className={styles.anchor}>
-        <ControlFrame icon={icon} invalid={Boolean(error)} trailing={trailing}>
+        <ControlFrame invalid={Boolean(error)} trailing={trailing}>
           <ComboInput
             id={id}
             listId={listId}

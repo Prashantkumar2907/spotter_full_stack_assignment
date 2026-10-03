@@ -1,0 +1,33 @@
+.bar {
+  display: flex;
+  gap: 2px;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-hover);
+}
+
+.md {
+  height: 10px;
+}
+
+.sm {
+  height: 6px;
+  gap: 1px;
+}
+
+.part {
+  flex-basis: 0;
+  min-width: 2px;
+  transform-origin: left center;
+  animation: grow-x var(--duration-slow) var(--ease-out) both;
+}
+
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}

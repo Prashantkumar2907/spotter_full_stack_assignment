@@ -1,29 +1,35 @@
-import { ClipboardList, Map, Play, ShieldCheck } from 'lucide-react'
+import { ClipboardCheck, Gauge, MapPinned, Play } from 'lucide-react'
 import { Button } from '../ui/Button'
 import styles from './EmptyOverlay.module.css'
 
-const HIGHLIGHTS = [
-  { icon: Map, text: 'Route with every fuel stop, break and rest' },
-  { icon: ShieldCheck, text: '11 h driving, 14 h window and 70 h cycle applied' },
-  { icon: ClipboardList, text: 'Filled-out daily log sheets, ready to print' },
+const STEPS = [
+  { icon: MapPinned, title: 'Add the route', text: 'Where the truck is, where it loads and where it delivers.' },
+  { icon: Gauge, title: 'Add cycle hours', text: 'Hours already used in the 70 hour / 8 day cycle.' },
+  {
+    icon: ClipboardCheck,
+    title: 'Get a legal plan',
+    text: 'Every fuel stop, break and rest, plus a filled-out log for each day.',
+  },
 ]
 
 export function EmptyOverlay({ onTrySample }: { onTrySample: () => void }) {
   return (
     <div className={styles.overlay}>
       <div className={styles.card}>
-        <h2 className={styles.title}>Your trip will appear here</h2>
-        <p className={styles.lead}>Enter the trip details, or start from a ready-made example.</p>
-        <ul className={styles.list}>
-          {HIGHLIGHTS.map(({ icon: Icon, text }, index) => (
-            <li key={text} className={styles.item} style={{ ['--i' as string]: index }}>
+        <h2 className={styles.title}>Plan a compliant trip in seconds</h2>
+        <ol className={styles.steps}>
+          {STEPS.map(({ icon: Icon, title, text }, index) => (
+            <li key={title} className={styles.step} style={{ ['--i' as string]: index }}>
               <span className={styles.icon}>
                 <Icon size={18} aria-hidden="true" />
               </span>
-              {text}
+              <span>
+                <strong className={styles.stepTitle}>{title}</strong>
+                <span className={styles.stepText}>{text}</span>
+              </span>
             </li>
           ))}
-        </ul>
+        </ol>
         <Button icon={Play} onClick={onTrySample}>
           Try the FMCSA sample day
         </Button>

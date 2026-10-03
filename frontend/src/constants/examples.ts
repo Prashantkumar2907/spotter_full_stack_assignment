@@ -3,6 +3,7 @@ import type { LogDetails, Place } from '../types/trip'
 export interface TripExample {
   id: string
   title: string
+  shortTitle: string
   summary: string
   current: Place
   pickup: Place
@@ -42,6 +43,7 @@ export const TRIP_EXAMPLES: TripExample[] = [
   {
     id: 'fmcsa-sample',
     title: 'FMCSA sample day',
+    shortTitle: 'FMCSA sample',
     summary: 'Richmond to Newark, one sheet',
     current: RICHMOND,
     pickup: RICHMOND,
@@ -61,6 +63,7 @@ export const TRIP_EXAMPLES: TripExample[] = [
   {
     id: 'midwest-south',
     title: 'Midwest to Southeast',
+    shortTitle: 'Midwest run',
     summary: 'Chicago, Dallas, Atlanta, 2 days',
     current: CHICAGO,
     pickup: DALLAS,
@@ -77,6 +80,7 @@ export const TRIP_EXAMPLES: TripExample[] = [
   {
     id: 'cross-country',
     title: 'Cross-country run',
+    shortTitle: 'Coast to coast',
     summary: 'Los Angeles, Denver, New York',
     current: LOS_ANGELES,
     pickup: DENVER,
@@ -93,6 +97,7 @@ export const TRIP_EXAMPLES: TripExample[] = [
   {
     id: 'cycle-limit',
     title: 'Near the 70-hour limit',
+    shortTitle: 'Near 70 h limit',
     summary: 'Seattle, Salt Lake, Kansas City',
     current: SEATTLE,
     pickup: SALT_LAKE,

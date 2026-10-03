@@ -6,7 +6,7 @@ function serialize(svg: SVGSVGElement, width: number, height: number): string {
   clone.setAttribute('xmlns', SVG_NAMESPACE)
   clone.setAttribute('width', String(width))
   clone.setAttribute('height', String(height))
-  clone.querySelectorAll('.sheet-pen').forEach((node) => node.removeAttribute('class'))
+  clone.querySelectorAll('.sheet-reveal').forEach((node) => node.removeAttribute('class'))
   return new XMLSerializer().serializeToString(clone)
 }
 

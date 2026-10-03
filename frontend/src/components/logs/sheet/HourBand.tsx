@@ -2,28 +2,27 @@ import { Label } from './SheetPrimitives'
 import {
   BAND_HEIGHT,
   BAND_Y,
-  GRID_WIDTH,
   GRID_X,
   HOUR_WIDTH,
   HOURS_PER_DAY,
+  TOTALS_LEFT,
   TOTALS_RIGHT,
   hourLabel,
 } from './sheetLayout'
-import { GRID_FILL, MUTED } from './sheetTheme'
+import { GRID_FILL } from './sheetTheme'
 
-const EDGE_INSET = 3
 const BAND_TEXT = '#ffffff'
+const NUMBER_BASELINE = BAND_Y + BAND_HEIGHT - 10
+const EDGE_INSET = 2
 
 function EdgeLabel({ hour }: { hour: number }) {
-  const atStart = hour === 0
-  const x = GRID_X + hour * HOUR_WIDTH + (atStart ? EDGE_INSET : -EDGE_INSET)
-  const anchor = atStart ? 'start' : 'end'
+  const x = GRID_X + hour * HOUR_WIDTH + (hour === 0 ? EDGE_INSET : -EDGE_INSET)
   return (
     <g>
-      <Label x={x} y={BAND_Y + 12} size={9} fill={BAND_TEXT} anchor={anchor}>
+      <Label x={x} y={NUMBER_BASELINE - 14} size={9.5} weight={700} fill={BAND_TEXT}>
         Mid-
       </Label>
-      <Label x={x} y={BAND_Y + 24} size={9} fill={BAND_TEXT} anchor={anchor}>
+      <Label x={x} y={NUMBER_BASELINE} size={9.5} weight={700} fill={BAND_TEXT}>
         night
       </Label>
     </g>
@@ -34,8 +33,8 @@ function HourMark({ hour }: { hour: number }) {
   return (
     <Label
       x={GRID_X + hour * HOUR_WIDTH}
-      y={BAND_Y + 20}
-      size={11}
+      y={NUMBER_BASELINE}
+      size={12}
       weight={700}
       fill={BAND_TEXT}
       anchor="middle"
@@ -47,9 +46,10 @@ function HourMark({ hour }: { hour: number }) {
 
 export function HourBand() {
   const hours = Array.from({ length: HOURS_PER_DAY + 1 }, (_, hour) => hour)
+  const totalsCenter = (TOTALS_LEFT + TOTALS_RIGHT) / 2
   return (
     <g>
-      <rect x={GRID_X} y={BAND_Y} width={GRID_WIDTH} height={BAND_HEIGHT} fill={GRID_FILL} />
+      <rect x={GRID_X} y={BAND_Y} width={TOTALS_RIGHT - GRID_X} height={BAND_HEIGHT} fill={GRID_FILL} />
       {hours.map((hour) =>
         hour === 0 || hour === HOURS_PER_DAY ? (
           <EdgeLabel key={hour} hour={hour} />
@@ -57,10 +57,10 @@ export function HourBand() {
           <HourMark key={hour} hour={hour} />
         ),
       )}
-      <Label x={TOTALS_RIGHT - 28} y={BAND_Y + 12} size={9.5} fill={MUTED} anchor="middle">
+      <Label x={totalsCenter + 6} y={NUMBER_BASELINE - 14} size={10} fill={BAND_TEXT} anchor="middle">
         Total
       </Label>
-      <Label x={TOTALS_RIGHT - 28} y={BAND_Y + 24} size={9.5} fill={MUTED} anchor="middle">
+      <Label x={totalsCenter + 6} y={NUMBER_BASELINE} size={10} fill={BAND_TEXT} anchor="middle">
         Hours
       </Label>
     </g>

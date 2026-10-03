@@ -39,39 +39,54 @@
   --duration-base: 240ms;
   --duration-slow: 360ms;
 
-  --header-height: 60px;
+  --sidebar-width: 400px;
   --control-height: 44px;
 
   color-scheme: light dark;
 
-  --color-bg: light-dark(#edf2ee, #0b1410);
-  --color-surface: light-dark(#ffffff, #13201a);
-  --color-surface-sunken: light-dark(#f3f7f4, #0f1a15);
-  --color-surface-hover: light-dark(#eaf1ec, #1a2a22);
-  --color-border: light-dark(#d3dcd6, #263a30);
-  --color-border-strong: light-dark(#aebdb4, #3a5646);
-  --color-text: light-dark(#12201a, #e6efe9);
-  --color-text-muted: light-dark(#4f6058, #9db1a6);
-  --color-accent: light-dark(#0a6847, #4fc99a);
-  --color-accent-hover: light-dark(#085738, #72dbb2);
-  --color-accent-soft: light-dark(#dcefe5, #16372a);
-  --color-on-accent: light-dark(#ffffff, #03241a);
-  --color-amber: light-dark(#a8480a, #f1a94d);
-  --color-amber-soft: light-dark(#fcefd9, #3a2a12);
-  --color-blue: light-dark(#3254b4, #8fa9f4);
-  --color-blue-soft: light-dark(#e3e9fa, #1d2848);
-  --color-slate: light-dark(#55656d, #9fb2ba);
-  --color-slate-soft: light-dark(#e6ecee, #1f2d33);
-  --color-danger: light-dark(#b42318, #ff8d82);
-  --color-danger-soft: light-dark(#fdecea, #3b1815);
-  --color-focus: light-dark(#1b7f5c, #72dbb2);
-  --color-scrim: light-dark(rgb(10 24 17 / 0.45), rgb(0 0 0 / 0.6));
-  --shadow-ink: light-dark(rgb(14 32 22 / 0.1), rgb(0 0 0 / 0.45));
+  --color-bg: light-dark(#eceff5, #090f1a);
+  --color-surface: light-dark(#ffffff, #101a2b);
+  --color-surface-sunken: light-dark(#f4f6fa, #0c1524);
+  --color-surface-hover: light-dark(#eef2f8, #16223a);
+  --color-border: light-dark(#dde3ec, #1f2d45);
+  --color-border-strong: light-dark(#c2cbd9, #31466a);
+  --color-text: light-dark(#0d1b2e, #e8eef7);
+  --color-text-muted: light-dark(#56657d, #9aa9c1);
+  --color-accent: light-dark(#ff7a2f, #ff8a45);
+  --color-accent-hover: light-dark(#ff8f50, #ffa06a);
+  --color-accent-soft: light-dark(#ffeadc, #3a2212);
+  --color-accent-ink: light-dark(#b4480c, #ffa36b);
+  --color-on-accent: #1f0e02;
+  --color-brand: #0b1a30;
+  --color-blue: light-dark(#2f6feb, #79a3ff);
+  --color-blue-soft: light-dark(#e3ecfe, #172846);
+  --color-amber: light-dark(#b86e00, #f2b34a);
+  --color-amber-soft: light-dark(#fff1d6, #3a2a0e);
+  --color-violet: light-dark(#6650d6, #a597ff);
+  --color-violet-soft: light-dark(#ece9fd, #241e4a);
+  --color-slate: light-dark(#5b6a80, #a3b1c6);
+  --color-slate-soft: light-dark(#e9edf3, #1b2639);
+  --color-success: light-dark(#128060, #3fcf9c);
+  --color-success-soft: light-dark(#dcf3ea, #12352a);
+  --color-danger: light-dark(#c62f2f, #ff8a80);
+  --color-danger-soft: light-dark(#fdeaea, #3d1717);
+  --color-focus: #ff8a45;
+  --color-scrim: light-dark(rgb(11 26 48 / 0.45), rgb(0 0 0 / 0.6));
+  --shadow-ink: light-dark(rgb(13 27 46 / 0.1), rgb(0 0 0 / 0.5));
 
   --status-off-duty: var(--color-slate);
-  --status-sleeper: var(--color-blue);
-  --status-driving: var(--color-accent);
+  --status-sleeper: var(--color-violet);
+  --status-driving: var(--color-blue);
   --status-on-duty: var(--color-amber);
+
+  --stop-start: light-dark(#0b1a30, #e8eef7);
+  --stop-pickup: light-dark(#128060, #2fbf8c);
+  --stop-dropoff: light-dark(#d23b3b, #ff6b6b);
+  --stop-fuel: light-dark(#d98200, #f2a93a);
+  --stop-break: light-dark(#5b6a80, #8d9db5);
+  --stop-rest: light-dark(#6650d6, #8f7fff);
+  --stop-restart: light-dark(#b0256a, #ff6fb0);
+  --pin-glyph: light-dark(#ffffff, #0b1220);
 
   --shadow-sm: 0 1px 2px var(--shadow-ink);
   --shadow-md: 0 8px 24px var(--shadow-ink), 0 2px 6px var(--shadow-ink);
@@ -84,4 +99,24 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
+}
+
+.ink {
+  --color-bg: light-dark(#0b1a30, #070e1a);
+  --color-surface: light-dark(#13253f, #0e1a2d);
+  --color-surface-sunken: light-dark(#0f2038, #0b1526);
+  --color-surface-hover: light-dark(#1a3152, #15243c);
+  --color-border: light-dark(#22395b, #1c2c46);
+  --color-border-strong: light-dark(#2f4a72, #2b4064);
+  --color-text: #eef3fa;
+  --color-text-muted: #9badc8;
+  --color-accent-soft: rgb(255 122 47 / 0.16);
+  --color-accent-ink: #ffa36b;
+  --color-danger: #ff8a80;
+  --color-danger-soft: rgb(255 138 128 / 0.14);
+  --color-slate-soft: #22395b;
+  --shadow-ink: rgb(0 0 0 / 0.45);
+  color-scheme: dark;
+  background: var(--color-bg);
+  color: var(--color-text);
 }

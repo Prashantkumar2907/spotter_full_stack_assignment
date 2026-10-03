@@ -9,7 +9,7 @@ import { EmptyOverlay } from './EmptyOverlay'
 import { LoadingOverlay } from './LoadingOverlay'
 import { LogsView } from './LogsView'
 import { RouteView } from './RouteView'
-import { WORKSPACE_TABS_PREFIX, WorkspaceTabs, type WorkspaceView } from './WorkspaceTabs'
+import { WORKSPACE_TABS_PREFIX, WorkspaceHeader, type WorkspaceView } from './WorkspaceHeader'
 import styles from './Workspace.module.css'
 
 interface WorkspaceProps {
@@ -38,11 +38,11 @@ function StageOverlay({ status, plan, onSample }: Omit<WorkspaceProps, 'error'>)
 export function Workspace({ status, plan, error, onSample }: WorkspaceProps) {
   const [view, setView] = useState<WorkspaceView>('route')
   const [selectedStopId, setSelectedStopId] = useSelectedStop(plan)
-
   return (
     <div className={styles.workspace}>
+      {status === 'loading' && <div className={styles.progress} role="progressbar" aria-label="Planning trip" />}
+      <WorkspaceHeader plan={plan} view={view} onViewChange={setView} />
       {error && <Alert title="Could not plan this trip">{error.message}</Alert>}
-      {plan && <WorkspaceTabs value={view} logCount={plan.logs.length} onChange={setView} />}
       <div
         className={styles.stage}
         role={plan ? 'tabpanel' : undefined}

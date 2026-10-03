@@ -1,4 +1,20 @@
-import type { StopKind } from '../types/trip'
+import type { DutyStatus, StopKind } from '../types/trip'
+
+export const DUTY_STATUS_ORDER: DutyStatus[] = ['driving', 'on_duty', 'sleeper', 'off_duty']
+
+export const DUTY_STATUS_LABELS: Record<DutyStatus, string> = {
+  off_duty: 'Off duty',
+  sleeper: 'Sleeper berth',
+  driving: 'Driving',
+  on_duty: 'On duty',
+}
+
+export const DUTY_STATUS_COLORS: Record<DutyStatus, string> = {
+  off_duty: 'var(--status-off-duty)',
+  sleeper: 'var(--status-sleeper)',
+  driving: 'var(--status-driving)',
+  on_duty: 'var(--status-on-duty)',
+}
 
 export const STOP_KIND_LABELS: Record<StopKind, string> = {
   start: 'Start',

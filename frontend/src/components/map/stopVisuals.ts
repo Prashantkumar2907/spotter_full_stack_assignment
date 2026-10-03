@@ -20,12 +20,6 @@ export const STOP_ICONS: Record<StopKind, LucideIcon> = {
   restart: RotateCcw,
 }
 
-export const STOP_TONES: Record<StopKind, string> = {
-  start: 'slate',
-  pickup: 'accent',
-  dropoff: 'accent',
-  fuel: 'amber',
-  break: 'slate',
-  rest: 'blue',
-  restart: 'blue',
+export function stopTone(kind: StopKind): string {
+  return `var(--stop-${kind})`
 }

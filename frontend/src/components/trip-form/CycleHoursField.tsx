@@ -19,6 +19,10 @@ interface CycleHoursFieldProps {
 
 const STEP_HOURS = CYCLE_STEP_HOURS * 2
 
+function formatHoursShort(hours: number): string {
+  return String(Number(hours.toFixed(2)))
+}
+
 function Stepper({ hours, onChange }: { hours: number | null; onChange: (value: string) => void }) {
   const step = (direction: 1 | -1) =>
     onChange(clampCycleHours((hours ?? 0) + direction * STEP_HOURS, MAX_CYCLE_HOURS))
@@ -34,7 +38,7 @@ function Remaining({ hours }: { hours: number | null }) {
   const text =
     hours === null
       ? `Enter 0 to ${MAX_CYCLE_HOURS} hours`
-      : `${(MAX_CYCLE_HOURS - hours).toFixed(1)} h left in the 70 h / 8 day cycle`
+      : `${formatHoursShort(hours)} of ${MAX_CYCLE_HOURS} h used · ${formatHoursShort(MAX_CYCLE_HOURS - hours)} h left`
   return (
     <div className={styles.meter}>
       <Meter value={hours ?? 0} max={MAX_CYCLE_HOURS} label="Cycle hours used" />

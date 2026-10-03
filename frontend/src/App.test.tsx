@@ -28,7 +28,8 @@ describe('App', () => {
   it('starts with an empty state that invites the user to plan a trip', () => {
     render(<App />)
     expect(screen.getByRole('heading', { name: 'Plan a trip' })).toBeInTheDocument()
-    expect(screen.getByText('Your trip will appear here')).toBeInTheDocument()
+    expect(screen.getByText('Plan a compliant trip in seconds')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Trip overview' })).toBeInTheDocument()
   })
 
   it('blocks submission and explains what is missing', async () => {
@@ -89,7 +90,7 @@ describe('App', () => {
     fetchMock.mockResolvedValue(jsonResponse(samplePlan))
     const user = userEvent.setup()
     render(<App />)
-    await user.selectOptions(screen.getByLabelText('Or start from an example'), 'cross-country')
+    await user.click(screen.getByRole('button', { name: 'Coast to coast' }))
     expect(await screen.findByLabelText('Trip summary')).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: 'Pickup location' })).toHaveValue('Denver, CO')
     expect(screen.getByLabelText('Current cycle used (hrs)')).toHaveValue(30)

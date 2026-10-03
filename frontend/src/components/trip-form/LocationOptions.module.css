@@ -28,7 +28,8 @@
 }
 
 .active {
-  background: var(--color-accent-soft);
+  background: var(--color-surface-hover);
+  box-shadow: inset 3px 0 0 var(--color-accent);
 }
 
 .pin {

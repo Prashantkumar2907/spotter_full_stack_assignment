@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import { useLayoutEffect, useRef } from 'react'
-import type { KeyboardEvent, ReactNode } from 'react'
+import type { KeyboardEvent, ReactNode, RefObject } from 'react'
 import { cx } from '../../utils/cx'
 import styles from './Tabs.module.css'
 import { tabButtonId, tabPanelId } from './tabIds'
@@ -9,7 +9,7 @@ export interface TabItem {
   id: string
   label: string
   icon?: LucideIcon
-  badge?: ReactNode
+  meta?: ReactNode
 }
 
 interface TabsProps {
@@ -18,7 +18,8 @@ interface TabsProps {
   items: TabItem[]
   value: string
   onChange: (id: string) => void
-  variant?: 'underline' | 'pill'
+  variant?: 'pill' | 'cards'
+  compact?: boolean
 }
 
 function nextIndex(key: string, current: number, count: number): number | null {
@@ -29,7 +30,7 @@ function nextIndex(key: string, current: number, count: number): number | null {
   return null
 }
 
-function useIndicator(value: string) {
+function useIndicator(value: string): RefObject<HTMLDivElement | null> {
   const listRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
     const list = listRef.current
@@ -37,16 +38,43 @@ function useIndicator(value: string) {
     if (!list || !active) return
     list.style.setProperty('--indicator-x', `${active.offsetLeft}px`)
     list.style.setProperty('--indicator-w', `${active.offsetWidth}px`)
+    active.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
   }, [value])
   return listRef
 }
 
-export function Tabs({ label, idPrefix, items, value, onChange, variant = 'underline' }: TabsProps) {
+interface TabButtonProps {
+  item: TabItem
+  idPrefix: string
+  selected: boolean
+  onSelect: (id: string) => void
+}
+
+function TabButton({ item, idPrefix, selected, onSelect }: TabButtonProps) {
+  const { id, label, icon: Icon, meta } = item
+  return (
+    <button
+      id={tabButtonId(idPrefix, id)}
+      type="button"
+      role="tab"
+      aria-selected={selected}
+      aria-controls={tabPanelId(idPrefix)}
+      tabIndex={selected ? 0 : -1}
+      className={styles.tab}
+      onClick={() => onSelect(id)}
+    >
+      {Icon && <Icon size={16} aria-hidden="true" />}
+      <span className={styles.text}>{label}</span>
+      {meta}
+    </button>
+  )
+}
+
+export function Tabs({ label, idPrefix, items, value, onChange, variant = 'pill', compact = false }: TabsProps) {
   const listRef = useIndicator(value)
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const current = items.findIndex((item) => item.id === value)
-    const target = nextIndex(event.key, current, items.length)
+    const target = nextIndex(event.key, items.findIndex((item) => item.id === value), items.length)
     if (target === null) return
     event.preventDefault()
     onChange(items[target].id)
@@ -58,27 +86,13 @@ export function Tabs({ label, idPrefix, items, value, onChange, variant = 'under
       ref={listRef}
       role="tablist"
       aria-label={label}
-      className={cx(styles.list, styles[variant])}
+      className={cx(styles.list, styles[variant], compact && styles.compact)}
       onKeyDown={handleKeyDown}
     >
-      {items.map(({ id, label: text, icon: Icon, badge }) => (
-        <button
-          key={id}
-          id={tabButtonId(idPrefix, id)}
-          type="button"
-          role="tab"
-          aria-selected={id === value}
-          aria-controls={tabPanelId(idPrefix)}
-          tabIndex={id === value ? 0 : -1}
-          className={styles.tab}
-          onClick={() => onChange(id)}
-        >
-          {Icon && <Icon size={18} aria-hidden="true" />}
-          {text}
-          {badge}
-        </button>
+      {items.map((item) => (
+        <TabButton key={item.id} item={item} idPrefix={idPrefix} selected={item.id === value} onSelect={onChange} />
       ))}
-      <span className={styles.indicator} aria-hidden="true" />
+      {variant === 'pill' && <span className={styles.indicator} aria-hidden="true" />}
     </div>
   )
 }

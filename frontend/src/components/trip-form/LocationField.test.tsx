@@ -1,6 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { LocateFixed } from 'lucide-react'
 import { useState } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { LocationValue } from '../../types/form'
@@ -19,7 +18,6 @@ function Harness({ onChange }: { onChange?: (value: LocationValue) => void }) {
     <LocationField
       label="Current location"
       placeholder="Where?"
-      icon={LocateFixed}
       value={value}
       onChange={(next) => {
         setValue(next)
