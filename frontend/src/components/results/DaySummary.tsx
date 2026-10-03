@@ -56,7 +56,7 @@ function Changes({ log }: { log: DailyLog }) {
 function ReadingKey() {
   return (
     <section className={styles.section} aria-label="How to read the log sheet">
-      <h3 className={styles.heading}>How to read the sheet</h3>
+      <h3 className={styles.heading}>Reading the sheet</h3>
       <ul className={styles.key}>
         <li>
           <svg viewBox="0 0 24 16" aria-hidden="true">
@@ -64,19 +64,19 @@ function ReadingKey() {
             <circle cx="12" cy="4" r="3" fill="var(--stop-dropoff)" />
             <circle cx="12" cy="12" r="3" fill="var(--stop-dropoff)" />
           </svg>
-          Dot: a change of duty status
+          Change of duty
         </li>
         <li>
           <svg viewBox="0 0 24 16" aria-hidden="true">
             <path d="M4 2V10H20V2M12 10L8 15" fill="none" stroke="currentColor" strokeWidth="2" />
           </svg>
-          Bracket: time the truck did not move
+          Truck stopped
         </li>
         <li>
           <svg viewBox="0 0 24 16" aria-hidden="true">
             <path d="M20 2L6 15M16 2L3 13" fill="none" stroke="currentColor" strokeWidth="2" />
           </svg>
-          Flag: city, state and what the driver did
+          Place and activity
         </li>
       </ul>
     </section>
@@ -88,27 +88,27 @@ export function DaySummary({ log }: { log: DailyLog }) {
   return (
     <Panel as="aside" className={styles.panel} aria-label="Day summary">
       <section className={styles.section}>
-        <h3 className={styles.heading}>Hours by duty line</h3>
+        <h3 className={styles.heading}>Hours</h3>
         <HoursByLine log={log} />
         <p className={styles.total}>
           <span>
             Total <strong>{formatHours(onDuty + log.totals.off_duty + log.totals.sleeper)} h</strong>
           </span>
           <span>
-            On duty today <strong className={styles.circled}>{formatHours(onDuty)}</strong>
+            On duty <strong className={styles.circled}>{formatHours(onDuty)}</strong>
           </span>
-          <span>{formatMiles(log.total_miles)} driven</span>
+          <span>{formatMiles(log.total_miles)}</span>
         </p>
       </section>
       <section className={`${styles.section} ${styles.grow}`}>
-        <h3 className={styles.heading}>Changes of duty status</h3>
+        <h3 className={styles.heading}>Duty changes</h3>
         <Changes log={log} />
       </section>
       <ReadingKey />
       <section className={styles.section}>
-        <h3 className={styles.heading}>70 hour / 8 day recap</h3>
+        <h3 className={styles.heading}>70-hour cycle</h3>
         <p className={styles.recap}>
-          Used <strong>{formatHours(log.recap.cycle_total)} h</strong> · Available tomorrow{' '}
+          Used <strong>{formatHours(log.recap.cycle_total)} h</strong> · Left{' '}
           <strong>{formatHours(log.recap.available_tomorrow)} h</strong>
         </p>
       </section>

@@ -10,7 +10,6 @@ export const GRID_RIGHT = GRID_X + GRID_WIDTH
 export const HOURS_BOX_X = 904
 export const MINUTES_BOX_X = 942
 export const TOTAL_BOX_WIDTH = 34
-export const SCALE_Y = 300
 export const ROWS_Y = 356
 export const ROW_HEIGHT = 36
 export const ROWS_BOTTOM = ROWS_Y + ROW_HEIGHT * 4

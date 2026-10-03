@@ -3,6 +3,7 @@ import { STOP_KIND_LABELS } from '../../constants/duty'
 import type { DailyLog, Stop } from '../../types/trip'
 import { buildDayEntries, listDays, ongoingStop } from '../../utils/itinerary'
 import { formatDateTime } from '../../utils/time'
+import { cx } from '../../utils/cx'
 import { Panel } from '../ui/Panel'
 import { tabButtonId, tabPanelId } from '../ui/tabIds'
 import { ITINERARY_TABS_PREFIX, ItineraryHeader } from './ItineraryHeader'
@@ -14,10 +15,11 @@ interface ItineraryProps {
   logs: DailyLog[]
   selectedStopId: number | null
   onSelectStop: (id: number) => void
+  className?: string
 }
 
 function CarryOver({ stop }: { stop: Stop | undefined }) {
-  if (!stop) return <p className={styles.carry}>No stops start on this day.</p>
+  if (!stop) return <p className={styles.carry}>No new stops.</p>
   return (
     <p className={styles.carry}>
       {STOP_KIND_LABELS[stop.kind]} at {stop.location} continues until {formatDateTime(stop.depart)}.
@@ -25,14 +27,14 @@ function CarryOver({ stop }: { stop: Stop | undefined }) {
   )
 }
 
-export function Itinerary({ stops, logs, selectedStopId, onSelectStop }: ItineraryProps) {
+export function Itinerary({ stops, logs, selectedStopId, onSelectStop, className }: ItineraryProps) {
   const days = useMemo(() => listDays(logs.length), [logs.length])
   const [day, setDay] = useState(1)
   const entries = useMemo(() => buildDayEntries(stops, day), [stops, day])
   const dayStart = `${logs[day - 1].date}T00:00:00`
 
   return (
-    <Panel as="aside" className={styles.itinerary} aria-label="Itinerary">
+    <Panel as="aside" className={cx(styles.itinerary, className)} aria-label="Itinerary">
       <ItineraryHeader
         days={days}
         activeDay={day}

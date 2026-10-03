@@ -20,11 +20,15 @@ interface TabsProps {
   onChange: (id: string) => void
   variant?: 'pill' | 'cards'
   compact?: boolean
+  orientation?: 'horizontal' | 'vertical'
 }
 
+const NEXT_KEYS = new Set(['ArrowRight', 'ArrowDown'])
+const PREVIOUS_KEYS = new Set(['ArrowLeft', 'ArrowUp'])
+
 function nextIndex(key: string, current: number, count: number): number | null {
-  if (key === 'ArrowRight') return (current + 1) % count
-  if (key === 'ArrowLeft') return (current - 1 + count) % count
+  if (NEXT_KEYS.has(key)) return (current + 1) % count
+  if (PREVIOUS_KEYS.has(key)) return (current - 1 + count) % count
   if (key === 'Home') return 0
   if (key === 'End') return count - 1
   return null
@@ -70,7 +74,16 @@ function TabButton({ item, idPrefix, selected, onSelect }: TabButtonProps) {
   )
 }
 
-export function Tabs({ label, idPrefix, items, value, onChange, variant = 'pill', compact = false }: TabsProps) {
+export function Tabs({
+  label,
+  idPrefix,
+  items,
+  value,
+  onChange,
+  variant = 'pill',
+  compact = false,
+  orientation = 'horizontal',
+}: TabsProps) {
   const listRef = useIndicator(value)
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -86,7 +99,8 @@ export function Tabs({ label, idPrefix, items, value, onChange, variant = 'pill'
       ref={listRef}
       role="tablist"
       aria-label={label}
-      className={cx(styles.list, styles[variant], compact && styles.compact)}
+      aria-orientation={orientation}
+      className={cx(styles.list, styles[variant], compact && styles.compact, styles[orientation])}
       onKeyDown={handleKeyDown}
     >
       {items.map((item) => (

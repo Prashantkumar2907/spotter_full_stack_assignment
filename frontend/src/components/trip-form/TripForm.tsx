@@ -1,10 +1,10 @@
-import { ArrowRight, CalendarClock, Route } from 'lucide-react'
+import { ArrowRight, Route } from 'lucide-react'
+import type { ApiError } from '../../api/client'
 import type { TripFormController } from '../../hooks/useTripForm'
-import { Brand } from '../layout/Brand'
+import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import { TextField } from '../ui/TextField'
 import { CycleHoursField } from './CycleHoursField'
-import { ExampleChips } from './ExampleChips'
 import { LogDetailsFields } from './LogDetailsFields'
 import { RouteFields } from './RouteFields'
 import styles from './TripForm.module.css'
@@ -12,41 +12,36 @@ import styles from './TripForm.module.css'
 interface TripFormProps {
   form: TripFormController
   loading: boolean
+  error: ApiError | null
 }
 
-export function TripForm({ form, loading }: TripFormProps) {
-  const { values, errors, setField, setDetail, submit, loadExample } = form
+export function TripForm({ form, loading, error }: TripFormProps) {
+  const { values, errors, setField, setDetail, submit } = form
   return (
-    <aside className={`ink ${styles.sidebar}`} aria-label="Trip details">
-      <div className={styles.brandRow}>
-        <Brand />
+    <form className={styles.card} onSubmit={submit} noValidate aria-labelledby="trip-form-title">
+      <h2 id="trip-form-title" className={styles.title}>
+        Plan a trip
+      </h2>
+      {error && <Alert title="Couldn't plan this trip">{error.message}</Alert>}
+      <RouteFields form={form} />
+      <div className={styles.row}>
+        <CycleHoursField
+          value={values.cycleUsed}
+          error={errors.cycleUsed}
+          onChange={(value) => setField('cycleUsed', value)}
+        />
+        <TextField
+          label="Departure"
+          type="datetime-local"
+          value={values.startTime}
+          error={errors.startTime}
+          onChange={(event) => setField('startTime', event.target.value)}
+        />
       </div>
-      <form className={styles.form} onSubmit={submit} noValidate>
-        <div className={`${styles.body} scroll-thin`}>
-          <h1 className={styles.title}>Plan a trip</h1>
-          <RouteFields form={form} />
-          <CycleHoursField
-            value={values.cycleUsed}
-            error={errors.cycleUsed}
-            onChange={(value) => setField('cycleUsed', value)}
-          />
-          <TextField
-            label="Departure (home terminal time)"
-            type="datetime-local"
-            icon={CalendarClock}
-            value={values.startTime}
-            error={errors.startTime}
-            onChange={(event) => setField('startTime', event.target.value)}
-          />
-          <LogDetailsFields values={values.details} onChange={setDetail} />
-          <ExampleChips onPick={loadExample} disabled={loading} />
-        </div>
-        <div className={styles.footer}>
-          <Button type="submit" size="lg" fullWidth icon={Route} trailingIcon={ArrowRight} loading={loading}>
-            {loading ? 'Planning trip' : 'Plan trip'}
-          </Button>
-        </div>
-      </form>
-    </aside>
+      <LogDetailsFields values={values.details} onChange={setDetail} />
+      <Button type="submit" size="lg" fullWidth icon={Route} trailingIcon={ArrowRight} loading={loading} className={styles.cta}>
+        {loading ? 'Planning' : 'Plan trip'}
+      </Button>
+    </form>
   )
 }

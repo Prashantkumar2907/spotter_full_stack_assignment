@@ -20,7 +20,7 @@
 .dialog::backdrop {
   background: var(--color-scrim);
   backdrop-filter: blur(3px);
-  animation: fade-in var(--duration-base) var(--ease-out);
+  animation: global(fade-in) var(--duration-base) var(--ease-out);
 }
 
 @keyframes dialog-in {
@@ -62,4 +62,18 @@
   padding: var(--space-4);
   overflow: auto;
   background: var(--color-surface-sunken);
+}
+
+.form {
+  width: min(620px, calc(100vw - 32px));
+  height: fit-content;
+  max-height: calc(100dvh - 32px);
+}
+
+.form .body {
+  display: block;
+  place-items: normal;
+  padding: var(--space-5);
+  overflow-y: auto;
+  background: var(--color-surface);
 }

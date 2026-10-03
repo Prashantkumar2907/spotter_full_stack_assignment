@@ -10,5 +10,5 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(90deg, transparent, var(--color-surface-hover), transparent);
-  animation: shimmer 1.4s var(--ease-move) infinite;
+  animation: global(shimmer) 1.4s var(--ease-move) infinite;
 }

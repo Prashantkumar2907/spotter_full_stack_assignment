@@ -1,0 +1,71 @@
+.overview {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+}
+
+.mapFallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.mapError {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: var(--space-6);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.stats {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+  right: calc(400px + var(--space-8));
+  z-index: var(--z-popover);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-lg);
+}
+
+.itinerary {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: var(--z-popover);
+  width: 400px;
+  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 1099px) {
+  .overview {
+    display: grid;
+    gap: var(--space-4);
+    height: auto;
+    padding: var(--space-4);
+  }
+
+  .map {
+    position: relative;
+    height: 360px;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+  }
+
+  .stats,
+  .itinerary {
+    position: static;
+    width: auto;
+    backdrop-filter: none;
+  }
+}

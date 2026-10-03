@@ -1,0 +1,137 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-top);
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  backdrop-filter: blur(6px);
+  animation: global(fade-in) var(--duration-base) var(--ease-out);
+}
+
+.card {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  width: min(420px, 100%);
+  padding: var(--space-8) var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  animation: global(fade-up) var(--duration-slow) var(--ease-out);
+}
+
+.road {
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+}
+
+.asphalt {
+  fill: var(--color-surface-sunken);
+}
+
+.lane {
+  stroke: var(--color-accent);
+  stroke-width: 3;
+  stroke-dasharray: 18 14;
+  animation: lane 0.6s linear infinite;
+}
+
+.truck {
+  animation: bounce 0.5s var(--ease-move) infinite alternate;
+}
+
+.trailer {
+  fill: var(--color-text);
+}
+
+.cab {
+  fill: var(--color-accent);
+}
+
+.window {
+  fill: var(--color-surface);
+}
+
+.wheel {
+  fill: var(--color-bg);
+  stroke: var(--color-text);
+  stroke-width: 3;
+}
+
+.title {
+  font-size: var(--text-xl);
+  font-weight: 800;
+}
+
+.steps {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    color var(--duration-base) var(--ease-out),
+    opacity var(--duration-base) var(--ease-out);
+}
+
+.badge {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-surface-hover);
+}
+
+.pending {
+  opacity: 0.5;
+}
+
+.active {
+  background: var(--color-accent-soft);
+  font-weight: 700;
+}
+
+.active .badge {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  animation: pulse-badge 1s var(--ease-move) infinite;
+}
+
+.done .badge {
+  background: var(--color-success);
+  color: var(--color-bg);
+}
+
+@keyframes lane {
+  to {
+    stroke-dashoffset: 32;
+  }
+}
+
+@keyframes bounce {
+  to {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes pulse-badge {
+  50% {
+    transform: scale(1.12);
+  }
+}

@@ -20,5 +20,5 @@
 
 .confirmed {
   color: var(--color-success);
-  animation: pop-in var(--duration-base) var(--ease-out);
+  animation: global(pop-in) var(--duration-base) var(--ease-out);
 }

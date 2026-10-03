@@ -1,0 +1,47 @@
+.screen {
+  display: grid;
+  grid-template-columns: minmax(420px, 44%) minmax(0, 1fr);
+  min-height: 100dvh;
+  view-transition-name: screen;
+}
+
+.formSide {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: clamp(16px, 3vh, 32px) clamp(20px, 3vw, 48px);
+  background:
+    radial-gradient(circle at 1px 1px, var(--color-border) 1px, transparent 0) 0 0 / 22px 22px,
+    var(--color-bg);
+}
+
+.back {
+  position: absolute;
+  top: var(--space-5);
+  left: var(--space-6);
+}
+
+@media (min-width: 1100px) and (min-height: 560px) {
+  .screen {
+    height: 100dvh;
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 1099px) {
+  .screen {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .formSide {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .back {
+    position: static;
+    justify-self: start;
+  }
+}

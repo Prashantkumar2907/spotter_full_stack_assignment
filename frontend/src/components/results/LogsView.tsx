@@ -6,7 +6,7 @@ import { LogSheet } from '../logs/sheet/LogSheet'
 import { Dialog } from '../ui/Dialog'
 import { tabButtonId, tabPanelId } from '../ui/tabIds'
 import { DaySummary } from './DaySummary'
-import { LOG_TABS_PREFIX, LogsToolbar } from './LogsToolbar'
+import { LOG_TABS_PREFIX, LogDays } from './LogDays'
 import styles from './LogsView.module.css'
 
 export function LogsView({ plan }: { plan: TripPlan }) {
@@ -19,7 +19,7 @@ export function LogsView({ plan }: { plan: TripPlan }) {
 
   return (
     <div className={styles.view}>
-      <LogsToolbar
+      <LogDays
         logs={logs}
         active={log}
         exporting={exporting}

@@ -2,7 +2,7 @@
 
 A full-stack app (Django REST + React) that takes a truck driver's trip details and returns the route with every required stop, plus filled-out FMCSA **Driver's Daily Log** sheets drawn from the plan.
 
-![Route, stops and itinerary](docs/screenshots/02-route-and-stops.png)
+![Trip entry](docs/screenshots/01-start.png)
 
 ## The problem
 
@@ -22,9 +22,11 @@ The hard part is that the log sheets are only correct if the schedule underneath
 1. **Route.** The backend geocodes the places, asks OSRM for the driving route (one request, three waypoints) and splits it into a deadhead leg (to pickup) and a loaded leg (to drop-off).
 2. **HOS simulation.** A pure, deterministic simulation walks the route minute by minute and inserts every stop the rules require (table below).
 3. **Log sheets.** The resulting duty segments are cut at midnight into calendar-day sheets. Each sheet gets totals that add up to 24 hours, remarks with the city and state of every change of duty status, miles for the day and the 70-hour recap.
-4. **UI.** React shows the map and an itinerary per day, and redraws each sheet as an SVG replica of the paper form supplied with the assignment, with the duty line drawn in pen blue. Sheets can be expanded full screen, downloaded as PNG or printed (one sheet per page).
+4. **UI.** The trip is entered on a full-screen form first, then the results take over the full screen: the map with floating stats and a day-by-day itinerary, and the daily log sheets drawn as SVG replicas of the paper form supplied with the assignment. Sheets can be expanded, downloaded as PNG or printed (one sheet per page).
 
-![Daily log sheet](docs/screenshots/03-log-sheet.png)
+![Route and stops](docs/screenshots/03-route-and-stops.png)
+
+![Daily logs](docs/screenshots/04-log-sheets.png)
 
 ### How the log sheet follows the provided form
 
@@ -39,16 +41,17 @@ The sheet keeps every field of the blank *Drivers Daily Log* supplied with the a
 - Recap: on lines, as on the form. On-duty hours today (lines 3 and 4) are circled, as the walkthrough shows. A / B / C are filled for the 70 hour / 8 day driver; the 60 hour / 7 day columns stay blank.
 - Next to the sheet, the app lists every change of duty in plain text, the hours per line, the recap, and a key explaining dots, brackets and flags.
 
-![FMCSA sample day as drawn by the app](docs/screenshots/04-fmcsa-sample-sheet.png)
+![FMCSA sample day as drawn by the app](docs/screenshots/05-fmcsa-sample-sheet.png)
 
 ### Interface design
 
-- A navy sidebar holds every input; the light workspace shows the results. Signal orange is used only for actions and the current selection; the duty statuses keep their own colors everywhere (driving blue, on duty amber, sleeper violet, off duty slate).
-- The route fields are drawn as a connected timeline (current location, then pickup, then drop-off), with a cycle-hours meter, a stepper and quick example trips.
-- On desktop the page never scrolls: day tabs replace long lists, the log sheet scales to fit, and "Expand" opens it full screen.
-- The trip title, stats and a duty-hours bar summarise the plan. The itinerary is a timeline per day with drive legs between stops, and a day spent entirely in a restart says so. Each day card on the Logs tab carries a mini 24-hour duty bar.
-- Motion is limited to transform and opacity: staggered entrances, count-up numbers, a pen reveal on each sheet, and pin and tab transitions. All of it is turned off under `prefers-reduced-motion`. Dark mode follows the system.
-- Accessibility: proper tabs with arrow-key navigation, combobox semantics on the place search, labelled controls, visible focus rings, and 44 px touch targets.
+- **Flow.** Enter the trip on one focused screen, watch it plan, then work with the results full screen. "Edit" returns to the form with every value kept; "New trip" starts clean.
+- **Colour.** Deep navy for the brand surfaces, one indigo for every action, a cool-gray canvas, and colour otherwise reserved for meaning: driving indigo, on duty amber, sleeper teal, off duty slate; pickup green, drop-off rose. Dark mode follows the system.
+- **Form.** The three places form a route timeline. Each node fills in as its place is entered, and the dotted connector between two filled places draws into a solid line. Optional log details open in a dialog, so the form never grows; the screen fits the window without scrolling, down to small laptop heights.
+- **Hero animation.** One 10-second clock drives everything: a navigation marker drives the route, pauses at pickup and arrives at drop-off while the log grid below draws the matching off-duty, driving and on-duty lines. The log line ends exactly when the marker arrives.
+- **Map.** The map fits the route between the floating panels, draws the route in with an eased stroke (white casing, 4 px indigo core, dotted empty leg), pops in the stops, then a direction marker glides along the route, turning with the road.
+- **Logs.** A day list with a 24-hour duty bar per day, the sheet at the largest size that fits, and a plain-language summary of every change of duty.
+- **Motion and access.** Motion is transform- and opacity-based and measured at 60 fps on a 2,800-mile route; everything turns off under `prefers-reduced-motion`. Tabs support arrow keys, the place search is a proper combobox, and controls are labelled with visible focus rings.
 
 ### HOS rules implemented
 
@@ -185,7 +188,7 @@ Both are GET requests, so retries are safe. Results are cached for 24 hours. Req
 
 - Planning and building the logs for a 2,798-mile, 6-day trip takes about 0.7 ms (median of 20 runs). The first request additionally decodes the route geometry and warms the place index (about 75 ms).
 - A cold plan is bounded by the external routing call (measured 1.4 s with coordinates supplied, 1.7 to 2.3 s when three places must also be geocoded, which is done in parallel). A repeat plan is served from cache in about 3 ms.
-- Responses are gzip-compressed (a 2,800-mile response is about 119 KB over the wire). The initial JS bundle is about 90 KB gzipped and the map code (Leaflet) loads lazily as a separate 48 KB chunk.
+- Responses are gzip-compressed (a 2,800-mile response is about 119 KB over the wire). The initial JS bundle is about 95 KB gzipped and the map code (Leaflet) loads lazily as a separate 49 KB chunk.
 - The desktop layout fits the viewport without page scroll: day tabs replace long lists, and the log sheet scales to fit its panel.
 
 ## Testing
@@ -205,8 +208,8 @@ uv run ruff check .  # lint, including complexity limits
 Frontend (`frontend/`):
 
 ```bash
-npm test             # 94 unit and component tests (Vitest and Testing Library)
-npm run test:e2e     # 10 browser tests (Playwright); add PLAYWRIGHT_CHANNEL=chrome to use installed Chrome,
+npm test             # 103 unit and component tests (Vitest and Testing Library)
+npm run test:e2e     # 11 browser tests (Playwright); add PLAYWRIGHT_CHANNEL=chrome to use installed Chrome,
                      # otherwise run `npx playwright install chromium` once
 npm run lint         # oxlint, including a 40-line function limit
 npm run typecheck
@@ -215,7 +218,7 @@ npm run build
 
 Unit and component tests cover utilities (time, polyline, validation, itinerary, duty math), the SVG sheet geometry (including the six remark brackets of the FMCSA completed log), the rendered sheet, tabs with keyboard navigation, the location combobox (typing, keyboard and mouse selection, clearing, outage), example chips, stats, legend, the itinerary's restart days, and the whole app flow with a mocked API.
 
-The Playwright suite (`frontend/e2e/`) runs the real app in Chrome against fixtures recorded from the real backend, with map tiles stubbed, so it is deterministic and works offline. It covers validation, the FMCSA sample sheet's content, expand and Escape, PNG download, a 5-day trip with a 34-hour restart, typed place selection, server errors, no page scroll at 1440 x 900, no sideways scroll on a phone, and a regression test for re-planning while the map is hidden.
+The Playwright suite (`frontend/e2e/`) runs the real app in Chrome against fixtures recorded from the real backend, with map tiles stubbed, so it is deterministic and works offline. It covers the form-first flow and validation, the loading screen, the route drawing in with its stops and travel marker, the FMCSA sample sheet's content, expand and Escape, PNG download, a 5-day trip with a 34-hour restart, editing and re-planning, typed place selection, server errors, no page scroll on any screen at 1440 x 900, and no sideways scroll on a phone.
 
 End-to-end in a real Chrome against the running stack (backend on `:8000`, Vite on `:5173`): empty state, validation messages, typeahead with keyboard selection, a typed trip, the FMCSA sample day, a 6-day cross-country trip with day tabs and stop focus, the near-70-hour example (34 h restart), PNG download, print (6 pages for 6 sheets), dark mode, and a 390 px mobile layout with no horizontal scroll. Screenshots, including dark mode and phone, are in `docs/screenshots/`.
 

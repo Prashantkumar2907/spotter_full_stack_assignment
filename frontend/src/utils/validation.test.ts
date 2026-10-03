@@ -42,7 +42,7 @@ describe('validateTripForm', () => {
 
   it('rejects out-of-range cycle hours and a missing departure', () => {
     const errors = validateTripForm(filledValues({ cycleUsed: '71', startTime: '' }))
-    expect(errors.cycleUsed).toMatch(/0 and 70/)
+    expect(errors.cycleUsed).toMatch(/0 to 70/)
     expect(errors.startTime).toBeDefined()
   })
 })

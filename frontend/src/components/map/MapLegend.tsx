@@ -23,8 +23,8 @@ function LineKey({ kind, children }: { kind: 'loaded' | 'deadhead'; children: st
 export function MapLegend({ kinds, showDeadhead }: MapLegendProps) {
   return (
     <ul className={styles.legend} aria-label="Map legend">
-      {showDeadhead && <LineKey kind="deadhead">Empty to pickup</LineKey>}
-      <LineKey kind="loaded">Loaded to drop-off</LineKey>
+      {showDeadhead && <LineKey kind="deadhead">Empty</LineKey>}
+      <LineKey kind="loaded">Loaded</LineKey>
       {LEGEND_ORDER.filter((kind) => kinds.has(kind)).map((kind) => {
         const Icon = STOP_ICONS[kind]
         return (

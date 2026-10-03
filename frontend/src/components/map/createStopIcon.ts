@@ -13,8 +13,8 @@ import {
 import type { StopKind } from '../../types/trip'
 import { stopTone } from './stopVisuals'
 
-const PIN_SIZE = 36
-const GLYPH_SIZE = 18
+const PIN_SIZE = 30
+const GLYPH_SIZE = 15
 const STAGGER_MS = 45
 
 const PIN_GLYPHS: Record<StopKind, IconNode> = {
@@ -36,7 +36,7 @@ function glyphMarkup(kind: StopKind): string {
   const svg = createElement(PIN_GLYPHS[kind], {
     width: GLYPH_SIZE,
     height: GLYPH_SIZE,
-    'stroke-width': 2.4,
+    'stroke-width': 2.5,
   })
   return svg.outerHTML
 }

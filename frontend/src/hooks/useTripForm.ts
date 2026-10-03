@@ -44,7 +44,12 @@ export function useTripForm(onSubmit: (payload: TripRequestPayload) => void) {
     [onSubmit],
   )
 
-  return { values, errors, setLocation, setField, setDetail, submit, loadExample }
+  const reset = useCallback(() => {
+    setValues(createInitialValues())
+    setAttempted(false)
+  }, [])
+
+  return { values, errors, setLocation, setField, setDetail, submit, loadExample, reset }
 }
 
 export type TripFormController = ReturnType<typeof useTripForm>

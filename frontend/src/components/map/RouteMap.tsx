@@ -1,8 +1,8 @@
 import 'leaflet/dist/leaflet.css'
 import { MapContainer, TileLayer, ZoomControl } from 'react-leaflet'
 import type { TripPlan } from '../../types/trip'
-import { FocusStop, KeepSized } from './mapEffects'
 import { hasDeadheadLeg, stopKindsPresent } from '../../utils/duty'
+import { FocusStop, KeepSized, type FitPadding } from './mapEffects'
 import { MapLegend } from './MapLegend'
 import { RouteLayers } from './RouteLayers'
 import styles from './RouteMap.module.css'
@@ -12,18 +12,19 @@ const US_ZOOM = 4
 const MIN_ZOOM = 3
 const MAX_ZOOM = 18
 const ZOOM_SNAP = 0.25
-const ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 
 interface RouteMapProps {
-  plan: TripPlan | null
+  plan: TripPlan
   selectedStopId: number | null
   onSelectStop: (id: number) => void
+  padding: FitPadding
 }
 
-export default function RouteMap({ plan, selectedStopId, onSelectStop }: RouteMapProps) {
-  const selected = plan?.stops.find((stop) => stop.id === selectedStopId)
+export default function RouteMap({ plan, selectedStopId, onSelectStop, padding }: RouteMapProps) {
+  const selected = plan.stops.find((stop) => stop.id === selectedStopId)
+  const planKey = `${plan.summary.start}-${plan.summary.end}-${plan.route.polyline.length}`
   return (
     <div className={styles.wrapper}>
       <MapContainer
@@ -36,16 +37,12 @@ export default function RouteMap({ plan, selectedStopId, onSelectStop }: RouteMa
         className={styles.map}
       >
         <TileLayer url={TILE_URL} attribution={ATTRIBUTION} maxZoom={MAX_ZOOM} />
-        <ZoomControl position="bottomright" />
+        <ZoomControl position="bottomleft" />
         <KeepSized />
-        <FocusStop stop={selected} />
-        {plan && (
-          <RouteLayers plan={plan} selectedStopId={selectedStopId} onSelectStop={onSelectStop} />
-        )}
+        <FocusStop stop={selected} padding={padding} />
+        <RouteLayers key={planKey} plan={plan} selectedStopId={selectedStopId} onSelectStop={onSelectStop} padding={padding} />
       </MapContainer>
-      {plan && (
-        <MapLegend kinds={stopKindsPresent(plan.stops)} showDeadhead={hasDeadheadLeg(plan.route.waypoints)} />
-      )}
+      <MapLegend kinds={stopKindsPresent(plan.stops)} showDeadhead={hasDeadheadLeg(plan.route.waypoints)} />
     </div>
   )
 }

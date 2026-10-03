@@ -37,8 +37,8 @@ function Stepper({ hours, onChange }: { hours: number | null; onChange: (value: 
 function Remaining({ hours }: { hours: number | null }) {
   const text =
     hours === null
-      ? `Enter 0 to ${MAX_CYCLE_HOURS} hours`
-      : `${formatHoursShort(hours)} of ${MAX_CYCLE_HOURS} h used · ${formatHoursShort(MAX_CYCLE_HOURS - hours)} h left`
+      ? `0 to ${MAX_CYCLE_HOURS} hours`
+      : `${formatHoursShort(MAX_CYCLE_HOURS - hours)} of ${MAX_CYCLE_HOURS} h left`
   return (
     <div className={styles.meter}>
       <Meter value={hours ?? 0} max={MAX_CYCLE_HOURS} label="Cycle hours used" />
@@ -53,7 +53,7 @@ export function CycleHoursField({ value, error, onChange }: CycleHoursFieldProps
   const id = useId()
   const hours = parseCycleHours(value)
   return (
-    <FieldShell id={id} label="Current cycle used (hrs)" error={error}>
+    <FieldShell id={id} label="Cycle used (hrs)" error={error}>
       <ControlFrame icon={Gauge} trailing={<Stepper hours={hours} onChange={onChange} />} invalid={Boolean(error)}>
         <input
           id={id}

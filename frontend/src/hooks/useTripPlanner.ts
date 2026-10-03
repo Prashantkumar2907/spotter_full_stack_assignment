@@ -22,7 +22,7 @@ export function useTripPlanner() {
   const [state, setState] = useState<PlannerState>(INITIAL_STATE)
   const controllerRef = useRef<AbortController | null>(null)
 
-  const submit = useCallback(async (payload: TripRequestPayload) => {
+  const submit = useCallback(async (payload: TripRequestPayload): Promise<TripPlan | null> => {
     controllerRef.current?.abort()
     const controller = new AbortController()
     controllerRef.current = controller
@@ -30,9 +30,12 @@ export function useTripPlanner() {
     try {
       const plan = await planTrip(payload, controller.signal)
       setState({ status: 'success', plan, error: null })
+      return plan
     } catch (error) {
-      if (isAbortError(error)) return
-      setState((previous) => ({ ...previous, status: 'error', error: toApiError(error) }))
+      if (!isAbortError(error)) {
+        setState((previous) => ({ ...previous, status: 'error', error: toApiError(error) }))
+      }
+      return null
     }
   }, [])
 

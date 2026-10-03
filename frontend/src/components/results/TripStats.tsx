@@ -5,6 +5,7 @@ import type { TripPlan, TripSummary } from '../../types/trip'
 import { partsFromTotals, sumDutyHours } from '../../utils/duty'
 import { formatMiles, pluralize } from '../../utils/format'
 import { formatDuration, formatElapsed } from '../../utils/time'
+import { cx } from '../../utils/cx'
 import { AnimatedNumber } from '../ui/AnimatedNumber'
 import { Panel } from '../ui/Panel'
 import { DutyBar } from './DutyBar'
@@ -14,7 +15,7 @@ interface StatProps {
   icon: LucideIcon
   label: string
   children: ReactNode
-  detail: string
+  detail?: string
 }
 
 function Stat({ icon: Icon, label, children, detail }: StatProps) {
@@ -25,7 +26,7 @@ function Stat({ icon: Icon, label, children, detail }: StatProps) {
         {label}
       </p>
       <p className={styles.value}>{children}</p>
-      <p className={styles.detail}>{detail}</p>
+      {detail && <p className={styles.detail}>{detail}</p>}
     </div>
   )
 }
@@ -40,7 +41,7 @@ function DutyMix({ plan }: { plan: TripPlan }) {
   const parts = partsFromTotals(totals)
   return (
     <div className={styles.mix}>
-      <DutyBar parts={parts} label="Hours by duty status across all log days" />
+      <DutyBar parts={parts} label="Hours by duty status" />
       <ul className={styles.legend}>
         {parts.map(({ status, weight }) => (
           <li key={status}>
@@ -53,25 +54,25 @@ function DutyMix({ plan }: { plan: TripPlan }) {
   )
 }
 
-export function TripStats({ plan }: { plan: TripPlan }) {
+export function TripStats({ plan, className }: { plan: TripPlan; className?: string }) {
   const { summary } = plan
   const stops = summary.fuel_stops + summary.breaks + summary.rests + summary.restarts
   return (
-    <Panel className={styles.panel} aria-label="Trip summary">
+    <Panel className={cx(styles.panel, className)} aria-label="Trip summary">
       <div className={styles.stats}>
-        <Stat icon={Route} label="Distance" detail={`${plan.route.legs.length} legs`}>
+        <Stat icon={Route} label="Distance">
           <AnimatedNumber value={summary.total_miles} format={formatMiles} />
         </Stat>
-        <Stat icon={Clock} label="Driving" detail="at 55 mph average">
+        <Stat icon={Clock} label="Driving">
           <AnimatedNumber value={summary.driving_minutes} format={(value) => formatDuration(Math.round(value))} />
         </Stat>
-        <Stat icon={CalendarClock} label="Door to door" detail="including all rest">
+        <Stat icon={CalendarClock} label="Trip time">
           {formatElapsed(summary.total_minutes)}
         </Stat>
-        <Stat icon={FileText} label="Log sheets" detail="one per calendar day">
+        <Stat icon={FileText} label="Daily logs">
           <AnimatedNumber value={summary.days} format={(value) => String(Math.round(value))} />
         </Stat>
-        <Stat icon={Fuel} label="Stops on the way" detail={stopsDetail(summary)}>
+        <Stat icon={Fuel} label="Stops" detail={stopsDetail(summary)}>
           <AnimatedNumber value={stops} format={(value) => String(Math.round(value))} />
         </Stat>
       </div>

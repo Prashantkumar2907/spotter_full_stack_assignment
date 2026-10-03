@@ -1,0 +1,26 @@
+.screen {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 100dvh;
+  view-transition-name: screen;
+}
+
+.stage {
+  position: relative;
+  min-height: 0;
+}
+
+.pane {
+  height: 100%;
+  min-height: 0;
+}
+
+.pane[hidden] {
+  display: none;
+}
+
+@media (min-width: 1100px) and (min-height: 640px) {
+  .screen {
+    height: 100dvh;
+  }
+}

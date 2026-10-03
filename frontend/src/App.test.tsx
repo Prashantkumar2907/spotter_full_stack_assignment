@@ -17,7 +17,15 @@ function jsonResponse(body: unknown, status = 200): Response {
   })
 }
 
-describe('App', () => {
+async function planSample() {
+  const user = userEvent.setup()
+  render(<App />)
+  await user.click(screen.getByRole('button', { name: 'FMCSA sample' }))
+  await screen.findByLabelText('Trip summary')
+  return user
+}
+
+describe('App flow', () => {
   beforeEach(() => {
     fetchMock.mockReset()
     vi.stubGlobal('fetch', fetchMock)
@@ -25,84 +33,95 @@ describe('App', () => {
 
   afterEach(() => vi.unstubAllGlobals())
 
-  it('starts with an empty state that invites the user to plan a trip', () => {
+  it('opens on the full-screen trip form', () => {
     render(<App />)
+    expect(screen.getByRole('heading', { name: /Every mile planned/ })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Plan a trip' })).toBeInTheDocument()
-    expect(screen.getByText('Plan a compliant trip in seconds')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Trip overview' })).toBeInTheDocument()
+    expect(screen.queryByLabelText('Trip summary')).not.toBeInTheDocument()
   })
 
   it('blocks submission and explains what is missing', async () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'Plan trip' }))
-    expect(await screen.findAllByText('Enter a place or pick one from the list')).toHaveLength(3)
+    expect(await screen.findAllByText('Enter a location')).toHaveLength(3)
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('plans the sample trip and shows the summary, itinerary and log sheet', async () => {
-    fetchMock.mockResolvedValue(jsonResponse(samplePlan))
+  it('shows the planning screen while the trip is being planned', async () => {
+    let resolve: (response: Response) => void = () => undefined
+    fetchMock.mockReturnValue(new Promise<Response>((done) => (resolve = done)))
     const user = userEvent.setup()
     render(<App />)
-    await user.click(screen.getByRole('button', { name: 'Try the FMCSA sample day' }))
-
-    const summary = await screen.findByLabelText('Trip summary')
-    expect(within(summary).getByText('Distance')).toBeInTheDocument()
-    expect(await screen.findByRole('complementary', { name: 'Itinerary' })).toBeInTheDocument()
-
-    const [url, init] = fetchMock.mock.calls[0]
-    expect(url).toBe('/api/trips/plan/')
-    const body = JSON.parse(init.body as string)
-    expect(body.current_location.label).toBe('Richmond, VA')
-    expect(body.dropoff_location.label).toBe('Newark, NJ')
-    expect(body.cycle_used_hours).toBe(0)
-    expect(body.log_details.shipping_document).toBe('101601')
-
-    await user.click(screen.getByRole('tab', { name: /Log sheets/ }))
-    expect(await screen.findAllByRole('img', { name: /daily log for 2026-10-05/i })).not.toHaveLength(0)
-    expect(screen.getByRole('button', { name: 'Download PNG' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'FMCSA sample' }))
+    expect(await screen.findByRole('heading', { name: 'Planning your trip' })).toBeInTheDocument()
+    resolve(jsonResponse(samplePlan))
+    expect(await screen.findByLabelText('Trip summary')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Planning your trip' })).not.toBeInTheDocument()
   })
 
-  it('shows the server message when planning fails', async () => {
+  it('switches to the full-screen results with the trip, stats and itinerary', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(samplePlan))
+    await planSample()
+    expect(screen.getByRole('heading', { level: 1, name: /Richmond, VA.*Newark, NJ/ })).toBeInTheDocument()
+    expect(screen.getByRole('complementary', { name: 'Itinerary' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Plan a trip' })).not.toBeInTheDocument()
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string)
+    expect(body.log_details.shipping_document).toBe('101601')
+  })
+
+  it('opens the log sheets with a day list, sheet and day summary', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(samplePlan))
+    const user = await planSample()
+    await user.click(screen.getByRole('tab', { name: /Daily logs/ }))
+    expect(screen.getByRole('navigation', { name: 'Daily logs' })).toBeInTheDocument()
+    expect(screen.getAllByRole('img', { name: /daily log for 2026-10-05/i }).length).toBeGreaterThan(0)
+    expect(screen.getByLabelText('Day summary')).toBeInTheDocument()
+  })
+
+  it('edits the trip with every value kept, and can go back to the results', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(samplePlan))
+    const user = await planSample()
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    expect(screen.getByRole('combobox', { name: 'Drop-off' })).toHaveValue('Newark, NJ')
+    await user.click(screen.getByRole('button', { name: 'Back to results' }))
+    expect(screen.getByLabelText('Trip summary')).toBeInTheDocument()
+  })
+
+  it('starts a new trip with an empty form', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(samplePlan))
+    const user = await planSample()
+    await user.click(screen.getByRole('button', { name: 'New trip' }))
+    expect(screen.getByRole('combobox', { name: 'Current location' })).toHaveValue('')
+  })
+
+  it('keeps the form and explains a server error', async () => {
     fetchMock.mockResolvedValue(
-      jsonResponse(
-        { error: { code: 'location_not_found', message: "Could not find a US location matching 'Zzz'" } },
-        422,
-      ),
+      jsonResponse({ error: { code: 'location_not_found', message: "Could not find a US location matching 'Zzz'" } }, 422),
     )
     const user = userEvent.setup()
     render(<App />)
-    await user.click(screen.getByRole('button', { name: 'Try the FMCSA sample day' }))
+    await user.click(screen.getByRole('button', { name: 'Coast to coast' }))
     const alert = await screen.findByRole('alert')
-    expect(alert).toHaveTextContent('Could not plan this trip')
     expect(alert).toHaveTextContent("Could not find a US location matching 'Zzz'")
+    expect(screen.getByRole('combobox', { name: 'Pickup' })).toHaveValue('Denver, CO')
   })
 
   it('explains a network failure', async () => {
     fetchMock.mockRejectedValue(new TypeError('Failed to fetch'))
     const user = userEvent.setup()
     render(<App />)
-    await user.click(screen.getByRole('button', { name: 'Try the FMCSA sample day' }))
+    await user.click(screen.getByRole('button', { name: 'FMCSA sample' }))
     expect(await screen.findByText(/cannot reach the planner/i)).toBeInTheDocument()
-  })
-
-  it('loads an example from the picker and plans it immediately', async () => {
-    fetchMock.mockResolvedValue(jsonResponse(samplePlan))
-    const user = userEvent.setup()
-    render(<App />)
-    await user.click(screen.getByRole('button', { name: 'Coast to coast' }))
-    expect(await screen.findByLabelText('Trip summary')).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: 'Pickup location' })).toHaveValue('Denver, CO')
-    expect(screen.getByLabelText('Current cycle used (hrs)')).toHaveValue(30)
   })
 
   it('adjusts cycle hours with the stepper', async () => {
     const user = userEvent.setup()
     render(<App />)
-    await user.click(screen.getByRole('button', { name: 'Increase cycle hours' }))
-    expect(screen.getByLabelText('Current cycle used (hrs)')).toHaveValue(0.5)
-    await user.click(screen.getByRole('button', { name: 'Decrease cycle hours' }))
-    await user.click(screen.getByRole('button', { name: 'Decrease cycle hours' }))
-    expect(screen.getByLabelText('Current cycle used (hrs)')).toHaveValue(0)
+    const form = screen.getByRole('form', { name: 'Plan a trip' })
+    await user.click(within(form).getByRole('button', { name: 'Increase cycle hours' }))
+    expect(screen.getByLabelText('Cycle used (hrs)')).toHaveValue(0.5)
+    await user.click(within(form).getByRole('button', { name: 'Decrease cycle hours' }))
+    expect(screen.getByLabelText('Cycle used (hrs)')).toHaveValue(0)
   })
 })

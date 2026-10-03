@@ -18,7 +18,7 @@ export function ExampleChips({ onPick, disabled }: ExampleChipsProps) {
   return (
     <section className={styles.section} aria-labelledby="examples-heading">
       <h2 id="examples-heading" className={styles.heading}>
-        Or load an example trip
+        Try a sample trip
       </h2>
       <div className={styles.grid}>
         {TRIP_EXAMPLES.map((example) => {

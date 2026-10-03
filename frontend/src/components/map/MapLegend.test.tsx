@@ -8,12 +8,12 @@ describe('MapLegend', () => {
     expect(screen.getByText('Fuel stop')).toBeInTheDocument()
     expect(screen.getByText('Drop-off')).toBeInTheDocument()
     expect(screen.queryByText('34-hour restart')).not.toBeInTheDocument()
-    expect(screen.queryByText('Empty to pickup')).not.toBeInTheDocument()
+    expect(screen.queryByText('Empty')).not.toBeInTheDocument()
   })
 
   it('explains the dotted line when the truck drives empty to the pickup', () => {
     render(<MapLegend kinds={new Set(['start'])} showDeadhead />)
-    expect(screen.getByText('Empty to pickup')).toBeInTheDocument()
-    expect(screen.getByText('Loaded to drop-off')).toBeInTheDocument()
+    expect(screen.getByText('Empty')).toBeInTheDocument()
+    expect(screen.getByText('Loaded')).toBeInTheDocument()
   })
 })

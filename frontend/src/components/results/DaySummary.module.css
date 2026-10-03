@@ -3,7 +3,7 @@
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  animation: slide-in-right var(--duration-slow) var(--ease-out) both;
+  animation: global(slide-in-right) var(--duration-slow) var(--ease-out) both;
 }
 
 .section {

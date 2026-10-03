@@ -8,9 +8,9 @@ import type {
 import type { LocationPayload, TripRequestPayload } from '../types/trip'
 
 const LOCATION_KEYS: LocationKey[] = ['current', 'pickup', 'dropoff']
-const LOCATION_ERROR = 'Enter a place or pick one from the list'
-const CYCLE_ERROR = `Enter hours between 0 and ${MAX_CYCLE_HOURS}`
-const START_ERROR = 'Choose a departure date and time'
+const LOCATION_ERROR = 'Enter a location'
+const CYCLE_ERROR = `Use 0 to ${MAX_CYCLE_HOURS} hours`
+const START_ERROR = 'Choose a departure time'
 
 export function parseCycleHours(raw: string): number | null {
   if (raw.trim() === '') return null

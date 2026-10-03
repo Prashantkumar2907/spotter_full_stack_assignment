@@ -1,0 +1,71 @@
+.bar {
+  position: relative;
+  z-index: var(--z-overlay);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-3) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  animation: slide-down var(--duration-slow) var(--ease-out) both;
+}
+
+.mark {
+  width: 36px;
+  height: 36px;
+}
+
+.trip {
+  min-width: 0;
+}
+
+.title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 800;
+}
+
+.place {
+  white-space: nowrap;
+}
+
+.arrow {
+  flex: none;
+  color: var(--color-accent);
+}
+
+.meta {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 1099px) {
+  .bar {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .bar > [role='tablist'],
+  .actions {
+    grid-column: 1 / -1;
+  }
+}

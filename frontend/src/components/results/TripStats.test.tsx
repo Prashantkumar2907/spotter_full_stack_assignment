@@ -7,7 +7,7 @@ describe('TripStats', () => {
   it('labels every headline number', () => {
     render(<TripStats plan={samplePlan} />)
     const panel = screen.getByLabelText('Trip summary')
-    for (const label of ['Distance', 'Driving', 'Door to door', 'Log sheets', 'Stops on the way']) {
+    for (const label of ['Distance', 'Driving', 'Trip time', 'Daily logs', 'Stops']) {
       expect(within(panel).getAllByText(label).length).toBeGreaterThan(0)
     }
     expect(within(panel).getByText('7 h 55 min')).toBeInTheDocument()
